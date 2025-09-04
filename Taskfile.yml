@@ -1,0 +1,8 @@
+version: '3'
+
+tasks:
+  swaggo:
+    cmd: swag init
+
+  migcr:
+    cmd: migrate create -ext sql -dir ./migrations -seq {{.name}}
