@@ -1,0 +1,171 @@
+package account
+
+import (
+	"crypto/hmac"
+	"crypto/rand"
+	"encoding/base64"
+	"errors"
+	"fmt"
+	"servicehub_api/pkg/domain"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/spf13/viper"
+	"golang.org/x/crypto/argon2"
+)
+
+var (
+	ErrFailedToGenerateSalt = errors.New("failed to generate salt")
+	ErrJWTSecretNotSet      = errors.New("jwt secret is not set")
+	ErrSubjectClaimNotFound = errors.New("subject claim not found in token")
+	ErrInvalidSubjectClaim  = errors.New("invalid subject claim type")
+)
+
+type AccountService struct{}
+
+func NewAccountService() domain.AccountService {
+	return &AccountService{}
+}
+
+// hashes password into following format:
+// $argon2id$v=19$m=65536,t=1,p=4$<salt>$<hash>
+func (s *AccountService) HashPassword(password string) (string, error) {
+	// Validate input type and length
+	if len(password) == 0 {
+		return "", domain.ErrPasswordEmpty
+	}
+
+	// Argon2id parameters
+	var (
+		memory  uint32 = 64 * 1024 // 64 MB
+		time    uint32 = 1         // 1 iteration
+		threads uint8  = 4         // 4 threads
+		keyLen  uint32 = 32        // 32 bytes
+		saltLen int    = 16        // 16 bytes
+	)
+
+	// Generate a random salt
+	salt := make([]byte, saltLen)
+	if _, err := rand.Read(salt); err != nil {
+		return "", fmt.Errorf("%w: %w", ErrFailedToGenerateSalt, err)
+	}
+
+	// Hash the password using Argon2id
+	hash := argon2.IDKey([]byte(password), salt, time, memory, threads, keyLen)
+
+	// Encode salt and hash to base64 for storage
+	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
+	b64Hash := base64.RawStdEncoding.EncodeToString(hash)
+
+	// Format: $argon2id$v=19$m=65536,t=1,p=4$<salt>$<hash>
+	encoded := fmt.Sprintf("$argon2id$v=19$m=%d,t=%d,p=%d$%s$%s", memory, time, threads, b64Salt, b64Hash)
+
+	return encoded, nil
+}
+
+func (s *AccountService) ComparePassword(password, hash string) (bool, error) {
+	// Split the hash into its components
+	// Expected format: $argon2id$v=19$m=65536,t=1,p=4$<salt>$<hash>
+	parts := strings.Split(hash, "$")
+	if len(parts) != 6 {
+		return false, domain.ErrInvalidHashFormat
+	}
+
+	// Validate the algorithm and version
+	if parts[1] != "argon2id" {
+		return false, domain.ErrInvalidHashFormat
+	}
+
+	// Parse the parameters from the third part: m=65536,t=1,p=4
+	params := strings.Split(parts[3], ",")
+	if len(params) != 3 {
+		return false, domain.ErrInvalidHashFormat
+	}
+
+	// Extract memory parameter
+	memoryStr := strings.TrimPrefix(params[0], "m=")
+	memory, err := strconv.ParseUint(memoryStr, 10, 32)
+	if err != nil {
+		return false, domain.ErrInvalidHashFormat
+	}
+
+	// Extract time parameter
+	timeStr := strings.TrimPrefix(params[1], "t=")
+	time, err := strconv.ParseUint(timeStr, 10, 32)
+	if err != nil {
+		return false, domain.ErrInvalidHashFormat
+	}
+
+	// Extract threads parameter
+	threadsStr := strings.TrimPrefix(params[2], "p=")
+	threads, err := strconv.ParseUint(threadsStr, 10, 32)
+	if err != nil {
+		return false, domain.ErrInvalidHashFormat
+	}
+
+	// Extract the salt and hash (parts[4] and parts[5])
+	salt, err := base64.RawStdEncoding.DecodeString(parts[4])
+	if err != nil {
+		return false, domain.ErrInvalidHashFormat
+	}
+
+	hashBytes, err := base64.RawStdEncoding.DecodeString(parts[5])
+	if err != nil {
+		return false, domain.ErrInvalidHashFormat
+	}
+
+	// Use the same keyLen as in HashPassword (32 bytes)
+	keyLen := uint32(32)
+
+	// Verify the password
+	computedHash := argon2.IDKey([]byte(password), salt, uint32(time), uint32(memory), uint8(threads), keyLen)
+
+	// Compare the computed hash with the stored hash
+	return hmac.Equal(hashBytes, computedHash), nil
+}
+
+func (s *AccountService) GenerateToken(account *domain.Account) (string, error) {
+	jwtSecret := viper.GetString("JWT_SECRET")
+	if jwtSecret == "" {
+		return "", ErrJWTSecretNotSet
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": account.ID,
+		"iss": "servicehub_api",
+		"iat": time.Now().Unix(),
+		"exp": time.Now().Add(time.Hour * 24).Unix(),
+	})
+
+	return token.SignedString([]byte(jwtSecret))
+}
+
+func (s *AccountService) ValidateToken(token string) (uint, error) {
+	jwtSecret := viper.GetString("JWT_SECRET")
+	if jwtSecret == "" {
+		return 0, ErrJWTSecretNotSet
+	}
+
+	claims, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		return []byte(jwtSecret), nil
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	// Extract the subject claim and convert from float64 (JSON number) to uint
+	subClaim, ok := claims.Claims.(jwt.MapClaims)["sub"]
+	if !ok {
+		return 0, ErrSubjectClaimNotFound
+	}
+
+	// Convert float64 to uint (JWT library returns JSON numbers as float64)
+	accountIDFloat, ok := subClaim.(float64)
+	if !ok {
+		return 0, ErrInvalidSubjectClaim
+	}
+
+	return uint(accountIDFloat), nil
+}
