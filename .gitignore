@@ -31,3 +31,14 @@ _test
 # OS-generated files
 .DS_Store
 Thumbs.db
+
+# Database
+*.db
+*.db-journal
+*.db-lock
+*.db-trace
+*.db-wal
+*.db-shm
+*.db-trace
+*.db-wal
+*.db-shm

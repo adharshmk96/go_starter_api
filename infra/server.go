@@ -18,6 +18,8 @@ func NewServer(
 	logger *logrus.Logger,
 	config Config,
 ) *http.Server {
+	db := initGorm()
+
 	router := gin.Default()
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
@@ -26,6 +28,8 @@ func NewServer(
 	rg.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "ok"})
 	})
+
+	SetupRoutes(rg, db, logger)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", config.Port),
