@@ -31,7 +31,7 @@ func (r *AccountRepo) GetAccountByEmail(email string) (*domain.Account, error) {
 	return &account, nil
 }
 
-func (r *AccountRepo) GetAccountByID(id string) (*domain.Account, error) {
+func (r *AccountRepo) GetAccountByID(id uint) (*domain.Account, error) {
 	var account domain.Account
 	err := r.db.Where("id = ?", id).First(&account).Error
 	if err != nil {
@@ -48,6 +48,10 @@ func (r *AccountRepo) UpdateAccount(account *domain.Account) (*domain.Account, e
 	return account, nil
 }
 
-func (r *AccountRepo) DeleteAccount(id string) error {
+func (r *AccountRepo) DeleteAccount(id uint) error {
 	return r.db.Delete(&domain.Account{}, id).Error
+}
+
+func (r *AccountRepo) LogAccountActivity(accountID uint, activity string) error {
+	return r.db.Create(&domain.AccountActivity{AccountID: accountID, Activity: activity}).Error
 }

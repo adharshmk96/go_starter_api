@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"gorm.io/gorm"
 )
 
 type Config struct {
@@ -15,11 +16,10 @@ type Config struct {
 }
 
 func NewServer(
+	db *gorm.DB,
 	logger *logrus.Logger,
 	config Config,
 ) *http.Server {
-	db := initGorm()
-
 	router := gin.Default()
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 

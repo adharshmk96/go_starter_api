@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"servicehub_api/pkg/domain"
+	"servicehub_api/pkg/mailer"
 	"strconv"
 	"strings"
 	"time"
@@ -23,10 +24,14 @@ var (
 	ErrInvalidSubjectClaim  = errors.New("invalid subject claim type")
 )
 
-type AccountService struct{}
+type AccountService struct {
+	emailService mailer.EmailService
+}
 
-func NewAccountService() domain.AccountService {
-	return &AccountService{}
+func NewAccountService(emailService mailer.EmailService) domain.AccountService {
+	return &AccountService{
+		emailService: emailService,
+	}
 }
 
 // hashes password into following format:
@@ -126,7 +131,7 @@ func (s *AccountService) ComparePassword(password, hash string) (bool, error) {
 	return hmac.Equal(hashBytes, computedHash), nil
 }
 
-func (s *AccountService) GenerateToken(account *domain.Account) (string, error) {
+func (s *AccountService) GenerateAuthToken(account *domain.Account) (string, error) {
 	jwtSecret := viper.GetString("JWT_SECRET")
 	if jwtSecret == "" {
 		return "", ErrJWTSecretNotSet
@@ -142,7 +147,7 @@ func (s *AccountService) GenerateToken(account *domain.Account) (string, error) 
 	return token.SignedString([]byte(jwtSecret))
 }
 
-func (s *AccountService) ValidateToken(token string) (uint, error) {
+func (s *AccountService) ValidateAuthToken(token string) (uint, error) {
 	jwtSecret := viper.GetString("JWT_SECRET")
 	if jwtSecret == "" {
 		return 0, ErrJWTSecretNotSet
@@ -168,4 +173,64 @@ func (s *AccountService) ValidateToken(token string) (uint, error) {
 	}
 
 	return uint(accountIDFloat), nil
+}
+
+func (s *AccountService) GeneratePasswordResetToken(account *domain.Account) (string, error) {
+	jwtSecret := viper.GetString("JWT_SECRET")
+	if jwtSecret == "" {
+		return "", ErrJWTSecretNotSet
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": strconv.FormatUint(uint64(account.ID), 10) + ":password-reset",
+		"iss": "servicehub_api",
+		"iat": time.Now().Unix(),
+		"exp": time.Now().Add(time.Hour * 24).Unix(),
+	})
+
+	return token.SignedString([]byte(jwtSecret))
+}
+
+func (s *AccountService) ValidatePasswordResetToken(token string) (uint, error) {
+	jwtSecret := viper.GetString("JWT_SECRET")
+	if jwtSecret == "" {
+		return 0, ErrJWTSecretNotSet
+	}
+
+	claims, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		return []byte(jwtSecret), nil
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	subClaim, ok := claims.Claims.(jwt.MapClaims)["sub"]
+	if !ok {
+		return 0, ErrSubjectClaimNotFound
+	}
+
+	parts := strings.Split(subClaim.(string), ":")
+	if len(parts) != 2 {
+		return 0, ErrInvalidSubjectClaim
+	}
+
+	accountID, err := strconv.ParseUint(parts[0], 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	if parts[1] != "password-reset" {
+		return 0, ErrInvalidSubjectClaim
+	}
+
+	return uint(accountID), nil
+}
+
+func (s *AccountService) SendPasswordResetEmail(email string, token string) error {
+	serverUrl := viper.GetString("SERVER_URL")
+	if serverUrl == "" {
+		return domain.ErrServerURLNotSet
+	}
+	link := serverUrl + "/api/v1/account/reset-password?token=" + token
+	return s.emailService.SendEmail(email, "Password Reset", "Click the link to reset your password: "+link)
 }
