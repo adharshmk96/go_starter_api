@@ -232,5 +232,17 @@ func (s *AccountService) SendPasswordResetEmail(email string, token string) erro
 		return domain.ErrServerURLNotSet
 	}
 	link := serverUrl + "/api/v1/account/reset-password?token=" + token
-	return s.emailService.SendEmail(email, "Password Reset", "Click the link to reset your password: "+link)
+
+	resetPasswordTemplate := `
+		<html>
+		<body>
+			<h1>Password Reset Request</h1>
+			<p><a href="` + link + `">Click here to reset your password</a></p>
+			<p>If you did not request a password reset, please ignore this email.</p>
+			<p>Thank you for using our service.</p>
+		</body>
+		</html>
+	`
+
+	return s.emailService.SendEmail(email, "Password Reset", resetPasswordTemplate)
 }
