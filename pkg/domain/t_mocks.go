@@ -5,6 +5,8 @@
 package domain
 
 import (
+	"context"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -36,8 +38,8 @@ func (_m *MockAccountService) EXPECT() *MockAccountService_Expecter {
 }
 
 // ComparePassword provides a mock function for the type MockAccountService
-func (_mock *MockAccountService) ComparePassword(password string, hash string) (bool, error) {
-	ret := _mock.Called(password, hash)
+func (_mock *MockAccountService) ComparePassword(ctx context.Context, password string, hash string) (bool, error) {
+	ret := _mock.Called(ctx, password, hash)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ComparePassword")
@@ -45,16 +47,16 @@ func (_mock *MockAccountService) ComparePassword(password string, hash string) (
 
 	var r0 bool
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string, string) (bool, error)); ok {
-		return returnFunc(password, hash)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (bool, error)); ok {
+		return returnFunc(ctx, password, hash)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string, string) bool); ok {
-		r0 = returnFunc(password, hash)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
+		r0 = returnFunc(ctx, password, hash)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
-	if returnFunc, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = returnFunc(password, hash)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, password, hash)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -67,25 +69,31 @@ type MockAccountService_ComparePassword_Call struct {
 }
 
 // ComparePassword is a helper method to define mock.On call
+//   - ctx context.Context
 //   - password string
 //   - hash string
-func (_e *MockAccountService_Expecter) ComparePassword(password interface{}, hash interface{}) *MockAccountService_ComparePassword_Call {
-	return &MockAccountService_ComparePassword_Call{Call: _e.mock.On("ComparePassword", password, hash)}
+func (_e *MockAccountService_Expecter) ComparePassword(ctx interface{}, password interface{}, hash interface{}) *MockAccountService_ComparePassword_Call {
+	return &MockAccountService_ComparePassword_Call{Call: _e.mock.On("ComparePassword", ctx, password, hash)}
 }
 
-func (_c *MockAccountService_ComparePassword_Call) Run(run func(password string, hash string)) *MockAccountService_ComparePassword_Call {
+func (_c *MockAccountService_ComparePassword_Call) Run(run func(ctx context.Context, password string, hash string)) *MockAccountService_ComparePassword_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(string)
+			arg0 = args[0].(context.Context)
 		}
 		var arg1 string
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -96,14 +104,14 @@ func (_c *MockAccountService_ComparePassword_Call) Return(b bool, err error) *Mo
 	return _c
 }
 
-func (_c *MockAccountService_ComparePassword_Call) RunAndReturn(run func(password string, hash string) (bool, error)) *MockAccountService_ComparePassword_Call {
+func (_c *MockAccountService_ComparePassword_Call) RunAndReturn(run func(ctx context.Context, password string, hash string) (bool, error)) *MockAccountService_ComparePassword_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GenerateAuthToken provides a mock function for the type MockAccountService
-func (_mock *MockAccountService) GenerateAuthToken(account *Account) (string, error) {
-	ret := _mock.Called(account)
+func (_mock *MockAccountService) GenerateAuthToken(ctx context.Context, account *Account) (string, error) {
+	ret := _mock.Called(ctx, account)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GenerateAuthToken")
@@ -111,16 +119,16 @@ func (_mock *MockAccountService) GenerateAuthToken(account *Account) (string, er
 
 	var r0 string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(*Account) (string, error)); ok {
-		return returnFunc(account)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *Account) (string, error)); ok {
+		return returnFunc(ctx, account)
 	}
-	if returnFunc, ok := ret.Get(0).(func(*Account) string); ok {
-		r0 = returnFunc(account)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *Account) string); ok {
+		r0 = returnFunc(ctx, account)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(*Account) error); ok {
-		r1 = returnFunc(account)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *Account) error); ok {
+		r1 = returnFunc(ctx, account)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -133,19 +141,25 @@ type MockAccountService_GenerateAuthToken_Call struct {
 }
 
 // GenerateAuthToken is a helper method to define mock.On call
+//   - ctx context.Context
 //   - account *Account
-func (_e *MockAccountService_Expecter) GenerateAuthToken(account interface{}) *MockAccountService_GenerateAuthToken_Call {
-	return &MockAccountService_GenerateAuthToken_Call{Call: _e.mock.On("GenerateAuthToken", account)}
+func (_e *MockAccountService_Expecter) GenerateAuthToken(ctx interface{}, account interface{}) *MockAccountService_GenerateAuthToken_Call {
+	return &MockAccountService_GenerateAuthToken_Call{Call: _e.mock.On("GenerateAuthToken", ctx, account)}
 }
 
-func (_c *MockAccountService_GenerateAuthToken_Call) Run(run func(account *Account)) *MockAccountService_GenerateAuthToken_Call {
+func (_c *MockAccountService_GenerateAuthToken_Call) Run(run func(ctx context.Context, account *Account)) *MockAccountService_GenerateAuthToken_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 *Account
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(*Account)
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *Account
+		if args[1] != nil {
+			arg1 = args[1].(*Account)
 		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -156,14 +170,14 @@ func (_c *MockAccountService_GenerateAuthToken_Call) Return(s string, err error)
 	return _c
 }
 
-func (_c *MockAccountService_GenerateAuthToken_Call) RunAndReturn(run func(account *Account) (string, error)) *MockAccountService_GenerateAuthToken_Call {
+func (_c *MockAccountService_GenerateAuthToken_Call) RunAndReturn(run func(ctx context.Context, account *Account) (string, error)) *MockAccountService_GenerateAuthToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GeneratePasswordResetToken provides a mock function for the type MockAccountService
-func (_mock *MockAccountService) GeneratePasswordResetToken(account *Account) (string, error) {
-	ret := _mock.Called(account)
+func (_mock *MockAccountService) GeneratePasswordResetToken(ctx context.Context, account *Account) (string, error) {
+	ret := _mock.Called(ctx, account)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GeneratePasswordResetToken")
@@ -171,16 +185,16 @@ func (_mock *MockAccountService) GeneratePasswordResetToken(account *Account) (s
 
 	var r0 string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(*Account) (string, error)); ok {
-		return returnFunc(account)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *Account) (string, error)); ok {
+		return returnFunc(ctx, account)
 	}
-	if returnFunc, ok := ret.Get(0).(func(*Account) string); ok {
-		r0 = returnFunc(account)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *Account) string); ok {
+		r0 = returnFunc(ctx, account)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(*Account) error); ok {
-		r1 = returnFunc(account)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *Account) error); ok {
+		r1 = returnFunc(ctx, account)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -193,19 +207,25 @@ type MockAccountService_GeneratePasswordResetToken_Call struct {
 }
 
 // GeneratePasswordResetToken is a helper method to define mock.On call
+//   - ctx context.Context
 //   - account *Account
-func (_e *MockAccountService_Expecter) GeneratePasswordResetToken(account interface{}) *MockAccountService_GeneratePasswordResetToken_Call {
-	return &MockAccountService_GeneratePasswordResetToken_Call{Call: _e.mock.On("GeneratePasswordResetToken", account)}
+func (_e *MockAccountService_Expecter) GeneratePasswordResetToken(ctx interface{}, account interface{}) *MockAccountService_GeneratePasswordResetToken_Call {
+	return &MockAccountService_GeneratePasswordResetToken_Call{Call: _e.mock.On("GeneratePasswordResetToken", ctx, account)}
 }
 
-func (_c *MockAccountService_GeneratePasswordResetToken_Call) Run(run func(account *Account)) *MockAccountService_GeneratePasswordResetToken_Call {
+func (_c *MockAccountService_GeneratePasswordResetToken_Call) Run(run func(ctx context.Context, account *Account)) *MockAccountService_GeneratePasswordResetToken_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 *Account
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(*Account)
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *Account
+		if args[1] != nil {
+			arg1 = args[1].(*Account)
 		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -216,14 +236,14 @@ func (_c *MockAccountService_GeneratePasswordResetToken_Call) Return(s string, e
 	return _c
 }
 
-func (_c *MockAccountService_GeneratePasswordResetToken_Call) RunAndReturn(run func(account *Account) (string, error)) *MockAccountService_GeneratePasswordResetToken_Call {
+func (_c *MockAccountService_GeneratePasswordResetToken_Call) RunAndReturn(run func(ctx context.Context, account *Account) (string, error)) *MockAccountService_GeneratePasswordResetToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // HashPassword provides a mock function for the type MockAccountService
-func (_mock *MockAccountService) HashPassword(password string) (string, error) {
-	ret := _mock.Called(password)
+func (_mock *MockAccountService) HashPassword(ctx context.Context, password string) (string, error) {
+	ret := _mock.Called(ctx, password)
 
 	if len(ret) == 0 {
 		panic("no return value specified for HashPassword")
@@ -231,16 +251,16 @@ func (_mock *MockAccountService) HashPassword(password string) (string, error) {
 
 	var r0 string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string) (string, error)); ok {
-		return returnFunc(password)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return returnFunc(ctx, password)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string) string); ok {
-		r0 = returnFunc(password)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = returnFunc(ctx, password)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
-		r1 = returnFunc(password)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, password)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -253,68 +273,17 @@ type MockAccountService_HashPassword_Call struct {
 }
 
 // HashPassword is a helper method to define mock.On call
+//   - ctx context.Context
 //   - password string
-func (_e *MockAccountService_Expecter) HashPassword(password interface{}) *MockAccountService_HashPassword_Call {
-	return &MockAccountService_HashPassword_Call{Call: _e.mock.On("HashPassword", password)}
+func (_e *MockAccountService_Expecter) HashPassword(ctx interface{}, password interface{}) *MockAccountService_HashPassword_Call {
+	return &MockAccountService_HashPassword_Call{Call: _e.mock.On("HashPassword", ctx, password)}
 }
 
-func (_c *MockAccountService_HashPassword_Call) Run(run func(password string)) *MockAccountService_HashPassword_Call {
+func (_c *MockAccountService_HashPassword_Call) Run(run func(ctx context.Context, password string)) *MockAccountService_HashPassword_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(string)
-		}
-		run(
-			arg0,
-		)
-	})
-	return _c
-}
-
-func (_c *MockAccountService_HashPassword_Call) Return(s string, err error) *MockAccountService_HashPassword_Call {
-	_c.Call.Return(s, err)
-	return _c
-}
-
-func (_c *MockAccountService_HashPassword_Call) RunAndReturn(run func(password string) (string, error)) *MockAccountService_HashPassword_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// SendPasswordResetEmail provides a mock function for the type MockAccountService
-func (_mock *MockAccountService) SendPasswordResetEmail(email string, token string) error {
-	ret := _mock.Called(email, token)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SendPasswordResetEmail")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = returnFunc(email, token)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockAccountService_SendPasswordResetEmail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SendPasswordResetEmail'
-type MockAccountService_SendPasswordResetEmail_Call struct {
-	*mock.Call
-}
-
-// SendPasswordResetEmail is a helper method to define mock.On call
-//   - email string
-//   - token string
-func (_e *MockAccountService_Expecter) SendPasswordResetEmail(email interface{}, token interface{}) *MockAccountService_SendPasswordResetEmail_Call {
-	return &MockAccountService_SendPasswordResetEmail_Call{Call: _e.mock.On("SendPasswordResetEmail", email, token)}
-}
-
-func (_c *MockAccountService_SendPasswordResetEmail_Call) Run(run func(email string, token string)) *MockAccountService_SendPasswordResetEmail_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
-		if args[0] != nil {
-			arg0 = args[0].(string)
+			arg0 = args[0].(context.Context)
 		}
 		var arg1 string
 		if args[1] != nil {
@@ -328,19 +297,82 @@ func (_c *MockAccountService_SendPasswordResetEmail_Call) Run(run func(email str
 	return _c
 }
 
+func (_c *MockAccountService_HashPassword_Call) Return(s string, err error) *MockAccountService_HashPassword_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockAccountService_HashPassword_Call) RunAndReturn(run func(ctx context.Context, password string) (string, error)) *MockAccountService_HashPassword_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SendPasswordResetEmail provides a mock function for the type MockAccountService
+func (_mock *MockAccountService) SendPasswordResetEmail(ctx context.Context, email string, token string) error {
+	ret := _mock.Called(ctx, email, token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SendPasswordResetEmail")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = returnFunc(ctx, email, token)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockAccountService_SendPasswordResetEmail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SendPasswordResetEmail'
+type MockAccountService_SendPasswordResetEmail_Call struct {
+	*mock.Call
+}
+
+// SendPasswordResetEmail is a helper method to define mock.On call
+//   - ctx context.Context
+//   - email string
+//   - token string
+func (_e *MockAccountService_Expecter) SendPasswordResetEmail(ctx interface{}, email interface{}, token interface{}) *MockAccountService_SendPasswordResetEmail_Call {
+	return &MockAccountService_SendPasswordResetEmail_Call{Call: _e.mock.On("SendPasswordResetEmail", ctx, email, token)}
+}
+
+func (_c *MockAccountService_SendPasswordResetEmail_Call) Run(run func(ctx context.Context, email string, token string)) *MockAccountService_SendPasswordResetEmail_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
 func (_c *MockAccountService_SendPasswordResetEmail_Call) Return(err error) *MockAccountService_SendPasswordResetEmail_Call {
 	_c.Call.Return(err)
 	return _c
 }
 
-func (_c *MockAccountService_SendPasswordResetEmail_Call) RunAndReturn(run func(email string, token string) error) *MockAccountService_SendPasswordResetEmail_Call {
+func (_c *MockAccountService_SendPasswordResetEmail_Call) RunAndReturn(run func(ctx context.Context, email string, token string) error) *MockAccountService_SendPasswordResetEmail_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ValidateAuthToken provides a mock function for the type MockAccountService
-func (_mock *MockAccountService) ValidateAuthToken(token string) (uint, error) {
-	ret := _mock.Called(token)
+func (_mock *MockAccountService) ValidateAuthToken(ctx context.Context, token string) (uint, error) {
+	ret := _mock.Called(ctx, token)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ValidateAuthToken")
@@ -348,16 +380,16 @@ func (_mock *MockAccountService) ValidateAuthToken(token string) (uint, error) {
 
 	var r0 uint
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string) (uint, error)); ok {
-		return returnFunc(token)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (uint, error)); ok {
+		return returnFunc(ctx, token)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string) uint); ok {
-		r0 = returnFunc(token)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) uint); ok {
+		r0 = returnFunc(ctx, token)
 	} else {
 		r0 = ret.Get(0).(uint)
 	}
-	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
-		r1 = returnFunc(token)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, token)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -370,19 +402,25 @@ type MockAccountService_ValidateAuthToken_Call struct {
 }
 
 // ValidateAuthToken is a helper method to define mock.On call
+//   - ctx context.Context
 //   - token string
-func (_e *MockAccountService_Expecter) ValidateAuthToken(token interface{}) *MockAccountService_ValidateAuthToken_Call {
-	return &MockAccountService_ValidateAuthToken_Call{Call: _e.mock.On("ValidateAuthToken", token)}
+func (_e *MockAccountService_Expecter) ValidateAuthToken(ctx interface{}, token interface{}) *MockAccountService_ValidateAuthToken_Call {
+	return &MockAccountService_ValidateAuthToken_Call{Call: _e.mock.On("ValidateAuthToken", ctx, token)}
 }
 
-func (_c *MockAccountService_ValidateAuthToken_Call) Run(run func(token string)) *MockAccountService_ValidateAuthToken_Call {
+func (_c *MockAccountService_ValidateAuthToken_Call) Run(run func(ctx context.Context, token string)) *MockAccountService_ValidateAuthToken_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(string)
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
 		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -393,14 +431,14 @@ func (_c *MockAccountService_ValidateAuthToken_Call) Return(v uint, err error) *
 	return _c
 }
 
-func (_c *MockAccountService_ValidateAuthToken_Call) RunAndReturn(run func(token string) (uint, error)) *MockAccountService_ValidateAuthToken_Call {
+func (_c *MockAccountService_ValidateAuthToken_Call) RunAndReturn(run func(ctx context.Context, token string) (uint, error)) *MockAccountService_ValidateAuthToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ValidatePasswordResetToken provides a mock function for the type MockAccountService
-func (_mock *MockAccountService) ValidatePasswordResetToken(token string) (uint, error) {
-	ret := _mock.Called(token)
+func (_mock *MockAccountService) ValidatePasswordResetToken(ctx context.Context, token string) (uint, error) {
+	ret := _mock.Called(ctx, token)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ValidatePasswordResetToken")
@@ -408,16 +446,16 @@ func (_mock *MockAccountService) ValidatePasswordResetToken(token string) (uint,
 
 	var r0 uint
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string) (uint, error)); ok {
-		return returnFunc(token)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (uint, error)); ok {
+		return returnFunc(ctx, token)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string) uint); ok {
-		r0 = returnFunc(token)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) uint); ok {
+		r0 = returnFunc(ctx, token)
 	} else {
 		r0 = ret.Get(0).(uint)
 	}
-	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
-		r1 = returnFunc(token)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, token)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -430,19 +468,25 @@ type MockAccountService_ValidatePasswordResetToken_Call struct {
 }
 
 // ValidatePasswordResetToken is a helper method to define mock.On call
+//   - ctx context.Context
 //   - token string
-func (_e *MockAccountService_Expecter) ValidatePasswordResetToken(token interface{}) *MockAccountService_ValidatePasswordResetToken_Call {
-	return &MockAccountService_ValidatePasswordResetToken_Call{Call: _e.mock.On("ValidatePasswordResetToken", token)}
+func (_e *MockAccountService_Expecter) ValidatePasswordResetToken(ctx interface{}, token interface{}) *MockAccountService_ValidatePasswordResetToken_Call {
+	return &MockAccountService_ValidatePasswordResetToken_Call{Call: _e.mock.On("ValidatePasswordResetToken", ctx, token)}
 }
 
-func (_c *MockAccountService_ValidatePasswordResetToken_Call) Run(run func(token string)) *MockAccountService_ValidatePasswordResetToken_Call {
+func (_c *MockAccountService_ValidatePasswordResetToken_Call) Run(run func(ctx context.Context, token string)) *MockAccountService_ValidatePasswordResetToken_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(string)
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
 		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -453,7 +497,7 @@ func (_c *MockAccountService_ValidatePasswordResetToken_Call) Return(v uint, err
 	return _c
 }
 
-func (_c *MockAccountService_ValidatePasswordResetToken_Call) RunAndReturn(run func(token string) (uint, error)) *MockAccountService_ValidatePasswordResetToken_Call {
+func (_c *MockAccountService_ValidatePasswordResetToken_Call) RunAndReturn(run func(ctx context.Context, token string) (uint, error)) *MockAccountService_ValidatePasswordResetToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -486,8 +530,8 @@ func (_m *MockAccountRepository) EXPECT() *MockAccountRepository_Expecter {
 }
 
 // CreateAccount provides a mock function for the type MockAccountRepository
-func (_mock *MockAccountRepository) CreateAccount(account *Account) (*Account, error) {
-	ret := _mock.Called(account)
+func (_mock *MockAccountRepository) CreateAccount(ctx context.Context, account *Account) (*Account, error) {
+	ret := _mock.Called(ctx, account)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateAccount")
@@ -495,18 +539,18 @@ func (_mock *MockAccountRepository) CreateAccount(account *Account) (*Account, e
 
 	var r0 *Account
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(*Account) (*Account, error)); ok {
-		return returnFunc(account)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *Account) (*Account, error)); ok {
+		return returnFunc(ctx, account)
 	}
-	if returnFunc, ok := ret.Get(0).(func(*Account) *Account); ok {
-		r0 = returnFunc(account)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *Account) *Account); ok {
+		r0 = returnFunc(ctx, account)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*Account)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(*Account) error); ok {
-		r1 = returnFunc(account)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *Account) error); ok {
+		r1 = returnFunc(ctx, account)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -519,19 +563,25 @@ type MockAccountRepository_CreateAccount_Call struct {
 }
 
 // CreateAccount is a helper method to define mock.On call
+//   - ctx context.Context
 //   - account *Account
-func (_e *MockAccountRepository_Expecter) CreateAccount(account interface{}) *MockAccountRepository_CreateAccount_Call {
-	return &MockAccountRepository_CreateAccount_Call{Call: _e.mock.On("CreateAccount", account)}
+func (_e *MockAccountRepository_Expecter) CreateAccount(ctx interface{}, account interface{}) *MockAccountRepository_CreateAccount_Call {
+	return &MockAccountRepository_CreateAccount_Call{Call: _e.mock.On("CreateAccount", ctx, account)}
 }
 
-func (_c *MockAccountRepository_CreateAccount_Call) Run(run func(account *Account)) *MockAccountRepository_CreateAccount_Call {
+func (_c *MockAccountRepository_CreateAccount_Call) Run(run func(ctx context.Context, account *Account)) *MockAccountRepository_CreateAccount_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 *Account
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(*Account)
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *Account
+		if args[1] != nil {
+			arg1 = args[1].(*Account)
 		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -542,22 +592,22 @@ func (_c *MockAccountRepository_CreateAccount_Call) Return(account1 *Account, er
 	return _c
 }
 
-func (_c *MockAccountRepository_CreateAccount_Call) RunAndReturn(run func(account *Account) (*Account, error)) *MockAccountRepository_CreateAccount_Call {
+func (_c *MockAccountRepository_CreateAccount_Call) RunAndReturn(run func(ctx context.Context, account *Account) (*Account, error)) *MockAccountRepository_CreateAccount_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // DeleteAccount provides a mock function for the type MockAccountRepository
-func (_mock *MockAccountRepository) DeleteAccount(id uint) error {
-	ret := _mock.Called(id)
+func (_mock *MockAccountRepository) DeleteAccount(ctx context.Context, id uint) error {
+	ret := _mock.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteAccount")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(uint) error); ok {
-		r0 = returnFunc(id)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) error); ok {
+		r0 = returnFunc(ctx, id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -570,19 +620,25 @@ type MockAccountRepository_DeleteAccount_Call struct {
 }
 
 // DeleteAccount is a helper method to define mock.On call
+//   - ctx context.Context
 //   - id uint
-func (_e *MockAccountRepository_Expecter) DeleteAccount(id interface{}) *MockAccountRepository_DeleteAccount_Call {
-	return &MockAccountRepository_DeleteAccount_Call{Call: _e.mock.On("DeleteAccount", id)}
+func (_e *MockAccountRepository_Expecter) DeleteAccount(ctx interface{}, id interface{}) *MockAccountRepository_DeleteAccount_Call {
+	return &MockAccountRepository_DeleteAccount_Call{Call: _e.mock.On("DeleteAccount", ctx, id)}
 }
 
-func (_c *MockAccountRepository_DeleteAccount_Call) Run(run func(id uint)) *MockAccountRepository_DeleteAccount_Call {
+func (_c *MockAccountRepository_DeleteAccount_Call) Run(run func(ctx context.Context, id uint)) *MockAccountRepository_DeleteAccount_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 uint
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(uint)
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
 		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -593,14 +649,14 @@ func (_c *MockAccountRepository_DeleteAccount_Call) Return(err error) *MockAccou
 	return _c
 }
 
-func (_c *MockAccountRepository_DeleteAccount_Call) RunAndReturn(run func(id uint) error) *MockAccountRepository_DeleteAccount_Call {
+func (_c *MockAccountRepository_DeleteAccount_Call) RunAndReturn(run func(ctx context.Context, id uint) error) *MockAccountRepository_DeleteAccount_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetAccountByEmail provides a mock function for the type MockAccountRepository
-func (_mock *MockAccountRepository) GetAccountByEmail(email string) (*Account, error) {
-	ret := _mock.Called(email)
+func (_mock *MockAccountRepository) GetAccountByEmail(ctx context.Context, email string) (*Account, error) {
+	ret := _mock.Called(ctx, email)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAccountByEmail")
@@ -608,18 +664,18 @@ func (_mock *MockAccountRepository) GetAccountByEmail(email string) (*Account, e
 
 	var r0 *Account
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string) (*Account, error)); ok {
-		return returnFunc(email)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*Account, error)); ok {
+		return returnFunc(ctx, email)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string) *Account); ok {
-		r0 = returnFunc(email)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *Account); ok {
+		r0 = returnFunc(ctx, email)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*Account)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
-		r1 = returnFunc(email)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, email)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -632,130 +688,17 @@ type MockAccountRepository_GetAccountByEmail_Call struct {
 }
 
 // GetAccountByEmail is a helper method to define mock.On call
+//   - ctx context.Context
 //   - email string
-func (_e *MockAccountRepository_Expecter) GetAccountByEmail(email interface{}) *MockAccountRepository_GetAccountByEmail_Call {
-	return &MockAccountRepository_GetAccountByEmail_Call{Call: _e.mock.On("GetAccountByEmail", email)}
+func (_e *MockAccountRepository_Expecter) GetAccountByEmail(ctx interface{}, email interface{}) *MockAccountRepository_GetAccountByEmail_Call {
+	return &MockAccountRepository_GetAccountByEmail_Call{Call: _e.mock.On("GetAccountByEmail", ctx, email)}
 }
 
-func (_c *MockAccountRepository_GetAccountByEmail_Call) Run(run func(email string)) *MockAccountRepository_GetAccountByEmail_Call {
+func (_c *MockAccountRepository_GetAccountByEmail_Call) Run(run func(ctx context.Context, email string)) *MockAccountRepository_GetAccountByEmail_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(string)
-		}
-		run(
-			arg0,
-		)
-	})
-	return _c
-}
-
-func (_c *MockAccountRepository_GetAccountByEmail_Call) Return(account *Account, err error) *MockAccountRepository_GetAccountByEmail_Call {
-	_c.Call.Return(account, err)
-	return _c
-}
-
-func (_c *MockAccountRepository_GetAccountByEmail_Call) RunAndReturn(run func(email string) (*Account, error)) *MockAccountRepository_GetAccountByEmail_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// GetAccountByID provides a mock function for the type MockAccountRepository
-func (_mock *MockAccountRepository) GetAccountByID(id uint) (*Account, error) {
-	ret := _mock.Called(id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetAccountByID")
-	}
-
-	var r0 *Account
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(uint) (*Account, error)); ok {
-		return returnFunc(id)
-	}
-	if returnFunc, ok := ret.Get(0).(func(uint) *Account); ok {
-		r0 = returnFunc(id)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*Account)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(uint) error); ok {
-		r1 = returnFunc(id)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockAccountRepository_GetAccountByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountByID'
-type MockAccountRepository_GetAccountByID_Call struct {
-	*mock.Call
-}
-
-// GetAccountByID is a helper method to define mock.On call
-//   - id uint
-func (_e *MockAccountRepository_Expecter) GetAccountByID(id interface{}) *MockAccountRepository_GetAccountByID_Call {
-	return &MockAccountRepository_GetAccountByID_Call{Call: _e.mock.On("GetAccountByID", id)}
-}
-
-func (_c *MockAccountRepository_GetAccountByID_Call) Run(run func(id uint)) *MockAccountRepository_GetAccountByID_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 uint
-		if args[0] != nil {
-			arg0 = args[0].(uint)
-		}
-		run(
-			arg0,
-		)
-	})
-	return _c
-}
-
-func (_c *MockAccountRepository_GetAccountByID_Call) Return(account *Account, err error) *MockAccountRepository_GetAccountByID_Call {
-	_c.Call.Return(account, err)
-	return _c
-}
-
-func (_c *MockAccountRepository_GetAccountByID_Call) RunAndReturn(run func(id uint) (*Account, error)) *MockAccountRepository_GetAccountByID_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// LogAccountActivity provides a mock function for the type MockAccountRepository
-func (_mock *MockAccountRepository) LogAccountActivity(accountID uint, activity string) error {
-	ret := _mock.Called(accountID, activity)
-
-	if len(ret) == 0 {
-		panic("no return value specified for LogAccountActivity")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(uint, string) error); ok {
-		r0 = returnFunc(accountID, activity)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockAccountRepository_LogAccountActivity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LogAccountActivity'
-type MockAccountRepository_LogAccountActivity_Call struct {
-	*mock.Call
-}
-
-// LogAccountActivity is a helper method to define mock.On call
-//   - accountID uint
-//   - activity string
-func (_e *MockAccountRepository_Expecter) LogAccountActivity(accountID interface{}, activity interface{}) *MockAccountRepository_LogAccountActivity_Call {
-	return &MockAccountRepository_LogAccountActivity_Call{Call: _e.mock.On("LogAccountActivity", accountID, activity)}
-}
-
-func (_c *MockAccountRepository_LogAccountActivity_Call) Run(run func(accountID uint, activity string)) *MockAccountRepository_LogAccountActivity_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 uint
-		if args[0] != nil {
-			arg0 = args[0].(uint)
+			arg0 = args[0].(context.Context)
 		}
 		var arg1 string
 		if args[1] != nil {
@@ -769,19 +712,150 @@ func (_c *MockAccountRepository_LogAccountActivity_Call) Run(run func(accountID 
 	return _c
 }
 
+func (_c *MockAccountRepository_GetAccountByEmail_Call) Return(account *Account, err error) *MockAccountRepository_GetAccountByEmail_Call {
+	_c.Call.Return(account, err)
+	return _c
+}
+
+func (_c *MockAccountRepository_GetAccountByEmail_Call) RunAndReturn(run func(ctx context.Context, email string) (*Account, error)) *MockAccountRepository_GetAccountByEmail_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAccountByID provides a mock function for the type MockAccountRepository
+func (_mock *MockAccountRepository) GetAccountByID(ctx context.Context, id uint) (*Account, error) {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountByID")
+	}
+
+	var r0 *Account
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) (*Account, error)); ok {
+		return returnFunc(ctx, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) *Account); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*Account)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = returnFunc(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAccountRepository_GetAccountByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountByID'
+type MockAccountRepository_GetAccountByID_Call struct {
+	*mock.Call
+}
+
+// GetAccountByID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uint
+func (_e *MockAccountRepository_Expecter) GetAccountByID(ctx interface{}, id interface{}) *MockAccountRepository_GetAccountByID_Call {
+	return &MockAccountRepository_GetAccountByID_Call{Call: _e.mock.On("GetAccountByID", ctx, id)}
+}
+
+func (_c *MockAccountRepository_GetAccountByID_Call) Run(run func(ctx context.Context, id uint)) *MockAccountRepository_GetAccountByID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAccountRepository_GetAccountByID_Call) Return(account *Account, err error) *MockAccountRepository_GetAccountByID_Call {
+	_c.Call.Return(account, err)
+	return _c
+}
+
+func (_c *MockAccountRepository_GetAccountByID_Call) RunAndReturn(run func(ctx context.Context, id uint) (*Account, error)) *MockAccountRepository_GetAccountByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// LogAccountActivity provides a mock function for the type MockAccountRepository
+func (_mock *MockAccountRepository) LogAccountActivity(ctx context.Context, accountID uint, activity string) error {
+	ret := _mock.Called(ctx, accountID, activity)
+
+	if len(ret) == 0 {
+		panic("no return value specified for LogAccountActivity")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string) error); ok {
+		r0 = returnFunc(ctx, accountID, activity)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockAccountRepository_LogAccountActivity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LogAccountActivity'
+type MockAccountRepository_LogAccountActivity_Call struct {
+	*mock.Call
+}
+
+// LogAccountActivity is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accountID uint
+//   - activity string
+func (_e *MockAccountRepository_Expecter) LogAccountActivity(ctx interface{}, accountID interface{}, activity interface{}) *MockAccountRepository_LogAccountActivity_Call {
+	return &MockAccountRepository_LogAccountActivity_Call{Call: _e.mock.On("LogAccountActivity", ctx, accountID, activity)}
+}
+
+func (_c *MockAccountRepository_LogAccountActivity_Call) Run(run func(ctx context.Context, accountID uint, activity string)) *MockAccountRepository_LogAccountActivity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
 func (_c *MockAccountRepository_LogAccountActivity_Call) Return(err error) *MockAccountRepository_LogAccountActivity_Call {
 	_c.Call.Return(err)
 	return _c
 }
 
-func (_c *MockAccountRepository_LogAccountActivity_Call) RunAndReturn(run func(accountID uint, activity string) error) *MockAccountRepository_LogAccountActivity_Call {
+func (_c *MockAccountRepository_LogAccountActivity_Call) RunAndReturn(run func(ctx context.Context, accountID uint, activity string) error) *MockAccountRepository_LogAccountActivity_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateAccount provides a mock function for the type MockAccountRepository
-func (_mock *MockAccountRepository) UpdateAccount(account *Account) (*Account, error) {
-	ret := _mock.Called(account)
+func (_mock *MockAccountRepository) UpdateAccount(ctx context.Context, account *Account) (*Account, error) {
+	ret := _mock.Called(ctx, account)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateAccount")
@@ -789,18 +863,18 @@ func (_mock *MockAccountRepository) UpdateAccount(account *Account) (*Account, e
 
 	var r0 *Account
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(*Account) (*Account, error)); ok {
-		return returnFunc(account)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *Account) (*Account, error)); ok {
+		return returnFunc(ctx, account)
 	}
-	if returnFunc, ok := ret.Get(0).(func(*Account) *Account); ok {
-		r0 = returnFunc(account)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *Account) *Account); ok {
+		r0 = returnFunc(ctx, account)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*Account)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(*Account) error); ok {
-		r1 = returnFunc(account)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *Account) error); ok {
+		r1 = returnFunc(ctx, account)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -813,19 +887,25 @@ type MockAccountRepository_UpdateAccount_Call struct {
 }
 
 // UpdateAccount is a helper method to define mock.On call
+//   - ctx context.Context
 //   - account *Account
-func (_e *MockAccountRepository_Expecter) UpdateAccount(account interface{}) *MockAccountRepository_UpdateAccount_Call {
-	return &MockAccountRepository_UpdateAccount_Call{Call: _e.mock.On("UpdateAccount", account)}
+func (_e *MockAccountRepository_Expecter) UpdateAccount(ctx interface{}, account interface{}) *MockAccountRepository_UpdateAccount_Call {
+	return &MockAccountRepository_UpdateAccount_Call{Call: _e.mock.On("UpdateAccount", ctx, account)}
 }
 
-func (_c *MockAccountRepository_UpdateAccount_Call) Run(run func(account *Account)) *MockAccountRepository_UpdateAccount_Call {
+func (_c *MockAccountRepository_UpdateAccount_Call) Run(run func(ctx context.Context, account *Account)) *MockAccountRepository_UpdateAccount_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 *Account
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(*Account)
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *Account
+		if args[1] != nil {
+			arg1 = args[1].(*Account)
 		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -836,7 +916,7 @@ func (_c *MockAccountRepository_UpdateAccount_Call) Return(account1 *Account, er
 	return _c
 }
 
-func (_c *MockAccountRepository_UpdateAccount_Call) RunAndReturn(run func(account *Account) (*Account, error)) *MockAccountRepository_UpdateAccount_Call {
+func (_c *MockAccountRepository_UpdateAccount_Call) RunAndReturn(run func(ctx context.Context, account *Account) (*Account, error)) *MockAccountRepository_UpdateAccount_Call {
 	_c.Call.Return(run)
 	return _c
 }

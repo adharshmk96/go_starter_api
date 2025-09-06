@@ -1,6 +1,7 @@
 package account_test
 
 import (
+	"context"
 	"servicehub_api/internal/account"
 	"servicehub_api/pkg/domain"
 	"servicehub_api/pkg/mailer"
@@ -9,15 +10,20 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 func TestAccountService_HashPassword(t *testing.T) {
+
+	otel.SetTracerProvider(noop.NewTracerProvider())
+
 	emailService := mailer.NewMockEmailService(t)
 	t.Run("should hash and compare password correctly", func(t *testing.T) {
 		service := account.NewAccountService(emailService)
 
 		password := "password"
-		hash, err := service.HashPassword(password)
+		hash, err := service.HashPassword(context.Background(), password)
 		if err != nil {
 			t.Fatalf("failed to hash password: %v", err)
 		}
@@ -25,7 +31,7 @@ func TestAccountService_HashPassword(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, hash)
 
-		ok, err := service.ComparePassword(password, hash)
+		ok, err := service.ComparePassword(context.Background(), password, hash)
 		assert.NoError(t, err)
 		assert.True(t, ok)
 	})
@@ -34,7 +40,7 @@ func TestAccountService_HashPassword(t *testing.T) {
 		service := account.NewAccountService(nil)
 
 		password := ""
-		hash, err := service.HashPassword(password)
+		hash, err := service.HashPassword(context.Background(), password)
 		assert.ErrorIs(t, err, domain.ErrPasswordEmpty)
 		assert.Empty(t, hash)
 	})
@@ -52,12 +58,12 @@ func TestAccountService_GenerateAndValidateToken(t *testing.T) {
 		account := &domain.Account{ID: 123, Email: "test@example.com"}
 
 		// Generate token
-		token, err := service.GenerateAuthToken(account)
+		token, err := service.GenerateAuthToken(context.Background(), account)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, token)
 
 		// Validate token
-		accountID, err := service.ValidateAuthToken(token)
+		accountID, err := service.ValidateAuthToken(context.Background(), token)
 		assert.NoError(t, err)
 		assert.Equal(t, uint(123), accountID)
 	})
@@ -67,21 +73,21 @@ func TestAccountService_GenerateAndValidateToken(t *testing.T) {
 		viper.Set("JWT_SECRET", "")
 
 		account := &domain.Account{ID: 1, Email: "test@test.com"}
-		token, err := service.GenerateAuthToken(account)
+		token, err := service.GenerateAuthToken(context.Background(), account)
 		assert.Error(t, err)
 		assert.Empty(t, token)
 	})
 
 	t.Run("should return error if token is invalid", func(t *testing.T) {
 		invalidToken := "invalid_token"
-		accountID, err := service.ValidateAuthToken(invalidToken)
+		accountID, err := service.ValidateAuthToken(context.Background(), invalidToken)
 		assert.Error(t, err)
 		assert.Equal(t, uint(0), accountID)
 	})
 
 	t.Run("should return error if token is malformed", func(t *testing.T) {
 		malformedToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid"
-		accountID, err := service.ValidateAuthToken(malformedToken)
+		accountID, err := service.ValidateAuthToken(context.Background(), malformedToken)
 		assert.Error(t, err)
 		assert.Equal(t, uint(0), accountID)
 	})
@@ -98,12 +104,12 @@ func TestAccountService_GenerateAndValidatePasswordResetToken(t *testing.T) {
 		account := &domain.Account{ID: 123, Email: "test@example.com"}
 
 		// Generate token
-		token, err := service.GeneratePasswordResetToken(account)
+		token, err := service.GeneratePasswordResetToken(context.Background(), account)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, token)
 
 		// Validate token
-		accountID, err := service.ValidatePasswordResetToken(token)
+		accountID, err := service.ValidatePasswordResetToken(context.Background(), token)
 		assert.NoError(t, err)
 		assert.Equal(t, uint(123), accountID)
 	})
@@ -113,21 +119,21 @@ func TestAccountService_GenerateAndValidatePasswordResetToken(t *testing.T) {
 		defer viper.Reset()
 
 		account := &domain.Account{ID: 1, Email: "test@test.com"}
-		token, err := service.GeneratePasswordResetToken(account)
+		token, err := service.GeneratePasswordResetToken(context.Background(), account)
 		assert.Error(t, err)
 		assert.Empty(t, token)
 	})
 
 	t.Run("should return error if token is invalid", func(t *testing.T) {
 		invalidToken := "invalid_token"
-		accountID, err := service.ValidatePasswordResetToken(invalidToken)
+		accountID, err := service.ValidatePasswordResetToken(context.Background(), invalidToken)
 		assert.Error(t, err)
 		assert.Equal(t, uint(0), accountID)
 	})
 
 	t.Run("should return error if token is malformed", func(t *testing.T) {
 		malformedToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid"
-		accountID, err := service.ValidatePasswordResetToken(malformedToken)
+		accountID, err := service.ValidatePasswordResetToken(context.Background(), malformedToken)
 		assert.Error(t, err)
 		assert.Equal(t, uint(0), accountID)
 	})
@@ -155,7 +161,7 @@ func TestAccountService_SendPasswordResetEmail(t *testing.T) {
 
 		email := "test@example.com"
 		token := "test_token"
-		err := service.SendPasswordResetEmail(email, token)
+		err := service.SendPasswordResetEmail(context.Background(), email, token)
 		assert.NoError(t, err)
 	})
 
@@ -168,7 +174,7 @@ func TestAccountService_SendPasswordResetEmail(t *testing.T) {
 
 		email := "test@example.com"
 		token := "test_token"
-		err := service.SendPasswordResetEmail(email, token)
+		err := service.SendPasswordResetEmail(context.Background(), email, token)
 		assert.ErrorIs(t, err, domain.ErrServerURLNotSet)
 	})
 

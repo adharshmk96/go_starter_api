@@ -2,6 +2,7 @@ package account_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +14,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace/noop"
 	"gorm.io/gorm"
 )
 
@@ -134,19 +137,23 @@ func (h *HTTPTestHelper) SetupMultipleHandlers(handlers map[string]map[string]gi
 
 func TestAccountHandler_RegisterAccount(t *testing.T) {
 
+	anyContext := mock.MatchedBy(func(ctx context.Context) bool { return true })
+
+	otel.SetTracerProvider(noop.NewTracerProvider())
+
 	t.Run("should register account successfully", func(t *testing.T) {
 		logger := logrus.New()
 		service := domain.NewMockAccountService(t)
 		repository := domain.NewMockAccountRepository(t)
 
 		// Mock repository methods
-		repository.On("GetAccountByEmail", "test@example.com").Return(nil, gorm.ErrRecordNotFound)
-		repository.On("CreateAccount", mock.AnythingOfType("*domain.Account")).Return(&domain.Account{ID: 1, Email: "test@example.com"}, nil)
-		repository.On("LogAccountActivity", uint(1), domain.ActivityRegister).Return(nil)
+		repository.On("GetAccountByEmail", anyContext, "test@example.com").Return(nil, gorm.ErrRecordNotFound)
+		repository.On("CreateAccount", anyContext, mock.AnythingOfType("*domain.Account")).Return(&domain.Account{ID: 1, Email: "test@example.com"}, nil)
+		repository.On("LogAccountActivity", anyContext, uint(1), domain.ActivityRegister).Return(nil)
 
 		// Mock service methods
-		service.On("HashPassword", "password").Return("hashed_password", nil)
-		service.On("GenerateAuthToken", mock.AnythingOfType("*domain.Account")).Return("auth_token", nil)
+		service.On("HashPassword", anyContext, "password").Return("hashed_password", nil)
+		service.On("GenerateAuthToken", anyContext, mock.AnythingOfType("*domain.Account")).Return("auth_token", nil)
 
 		handler := account.NewAccountHandler(logger, service, repository)
 
@@ -179,7 +186,7 @@ func TestAccountHandler_RegisterAccount(t *testing.T) {
 
 		// Mock repository to return existing account
 		existingAccount := &domain.Account{ID: 1, Email: "test@example.com"}
-		repository.On("GetAccountByEmail", "test@example.com").Return(existingAccount, nil)
+		repository.On("GetAccountByEmail", anyContext, "test@example.com").Return(existingAccount, nil)
 
 		handler := account.NewAccountHandler(logger, service, repository)
 

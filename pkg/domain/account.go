@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -38,14 +39,14 @@ type AccountActivity struct {
 }
 
 type AccountService interface {
-	GenerateAuthToken(account *Account) (string, error)
-	ValidateAuthToken(token string) (uint, error)
-	HashPassword(password string) (string, error)
-	ComparePassword(password, hash string) (bool, error)
+	GenerateAuthToken(ctx context.Context, account *Account) (string, error)
+	ValidateAuthToken(ctx context.Context, token string) (uint, error)
+	HashPassword(ctx context.Context, password string) (string, error)
+	ComparePassword(ctx context.Context, password, hash string) (bool, error)
 
-	GeneratePasswordResetToken(account *Account) (string, error)
-	ValidatePasswordResetToken(token string) (uint, error)
-	SendPasswordResetEmail(email string, token string) error
+	GeneratePasswordResetToken(ctx context.Context, account *Account) (string, error)
+	ValidatePasswordResetToken(ctx context.Context, token string) (uint, error)
+	SendPasswordResetEmail(ctx context.Context, email string, token string) error
 }
 
 var (
@@ -55,11 +56,11 @@ var (
 )
 
 type AccountRepository interface {
-	CreateAccount(account *Account) (*Account, error)
-	GetAccountByEmail(email string) (*Account, error)
-	GetAccountByID(id uint) (*Account, error)
-	UpdateAccount(account *Account) (*Account, error)
-	DeleteAccount(id uint) error
+	CreateAccount(ctx context.Context, account *Account) (*Account, error)
+	GetAccountByEmail(ctx context.Context, email string) (*Account, error)
+	GetAccountByID(ctx context.Context, id uint) (*Account, error)
+	UpdateAccount(ctx context.Context, account *Account) (*Account, error)
+	DeleteAccount(ctx context.Context, id uint) error
 
-	LogAccountActivity(accountID uint, activity string) error
+	LogAccountActivity(ctx context.Context, accountID uint, activity string) error
 }

@@ -8,11 +8,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
 )
 
 type AccountHandler struct {
-	logger            *logrus.Logger
+	logger *logrus.Logger
+	tracer trace.Tracer
+	meter  metric.Meter
+
 	accountService    domain.AccountService
 	accountRepository domain.AccountRepository
 }
@@ -22,8 +28,12 @@ func NewAccountHandler(
 	accountService domain.AccountService,
 	accountRepository domain.AccountRepository,
 ) *AccountHandler {
+	tracer := otel.Tracer("accountHandler")
+	meter := otel.Meter("accountHandler")
 	return &AccountHandler{
 		logger:            logger,
+		tracer:            tracer,
+		meter:             meter,
 		accountService:    accountService,
 		accountRepository: accountRepository,
 	}
@@ -51,6 +61,10 @@ type RegisterAccountResponse struct {
 // @Failure		500		{object}	map[string]string
 // @Router			api/v1/account/register [post]
 func (h *AccountHandler) RegisterAccount(c *gin.Context) {
+	ctx := c.Request.Context()
+	ctx, span := h.tracer.Start(ctx, "RegisterAccount")
+	defer span.End()
+
 	var req RegisterAccountRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -58,7 +72,7 @@ func (h *AccountHandler) RegisterAccount(c *gin.Context) {
 	}
 
 	// Check if account already exists
-	existingAcc, err := h.accountRepository.GetAccountByEmail(req.Email)
+	existingAcc, err := h.accountRepository.GetAccountByEmail(ctx, req.Email)
 	if err == nil && existingAcc != nil {
 		h.logger.WithField("userId", existingAcc.ID).Errorf("account already exists")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "account already exists"})
@@ -73,7 +87,7 @@ func (h *AccountHandler) RegisterAccount(c *gin.Context) {
 	}
 
 	// Hash the password before storing
-	hashedPassword, err := h.accountService.HashPassword(req.Password)
+	hashedPassword, err := h.accountService.HashPassword(ctx, req.Password)
 	if err != nil {
 		h.logger.Errorf("failed to hash password: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
@@ -85,21 +99,21 @@ func (h *AccountHandler) RegisterAccount(c *gin.Context) {
 		Password: hashedPassword,
 	}
 
-	acc, err = h.accountRepository.CreateAccount(acc)
+	acc, err = h.accountRepository.CreateAccount(ctx, acc)
 	if err != nil {
 		h.logger.Errorf("failed to create account: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	token, err := h.accountService.GenerateAuthToken(acc)
+	token, err := h.accountService.GenerateAuthToken(ctx, acc)
 	if err != nil {
 		h.logger.WithField("userId", acc.ID).Errorf("failed to generate token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	err = h.accountRepository.LogAccountActivity(acc.ID, domain.ActivityRegister)
+	err = h.accountRepository.LogAccountActivity(ctx, acc.ID, domain.ActivityRegister)
 	if err != nil {
 		h.logger.WithField("userId", acc.ID).Errorf("failed to log activity: %v", err)
 	}
@@ -131,20 +145,24 @@ type LoginAccountResponse struct {
 // @Failure		500		{object}	map[string]string
 // @Router			api/v1/account/login [post]
 func (h *AccountHandler) LoginAccount(c *gin.Context) {
+	ctx := c.Request.Context()
+	ctx, span := h.tracer.Start(ctx, "LoginAccount")
+	defer span.End()
+
 	var req LoginAccountRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	acc, err := h.accountRepository.GetAccountByEmail(req.Email)
+	acc, err := h.accountRepository.GetAccountByEmail(ctx, req.Email)
 	if err != nil {
 		h.logger.Errorf("failed to get account by email: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	ok, err := h.accountService.ComparePassword(req.Password, acc.Password)
+	ok, err := h.accountService.ComparePassword(ctx, req.Password, acc.Password)
 	if err != nil {
 		h.logger.WithField("userId", acc.ID).Errorf("failed to compare password: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
@@ -156,14 +174,14 @@ func (h *AccountHandler) LoginAccount(c *gin.Context) {
 		return
 	}
 
-	token, err := h.accountService.GenerateAuthToken(acc)
+	token, err := h.accountService.GenerateAuthToken(ctx, acc)
 	if err != nil {
 		h.logger.WithField("userId", acc.ID).Errorf("failed to generate token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
 		return
 	}
 
-	err = h.accountRepository.LogAccountActivity(acc.ID, domain.ActivityLogin)
+	err = h.accountRepository.LogAccountActivity(ctx, acc.ID, domain.ActivityLogin)
 	if err != nil {
 		h.logger.WithField("userId", acc.ID).Errorf("failed to log activity: %v", err)
 	}
@@ -186,20 +204,24 @@ func (h *AccountHandler) LoginAccount(c *gin.Context) {
 // @Failure		500		{object}	map[string]string
 // @Router			api/v1/account/logout [post]
 func (h *AccountHandler) LogoutAccount(c *gin.Context) {
+	ctx := c.Request.Context()
+	ctx, span := h.tracer.Start(ctx, "LogoutAccount")
+	defer span.End()
+
 	token := c.GetHeader("Authorization")
 	if token == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "token is required"})
 		return
 	}
 
-	accountID, err := h.accountService.ValidateAuthToken(token)
+	accountID, err := h.accountService.ValidateAuthToken(ctx, token)
 	if err != nil {
 		h.logger.Errorf("failed to validate token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	err = h.accountRepository.LogAccountActivity(accountID, domain.ActivityLogout)
+	err = h.accountRepository.LogAccountActivity(ctx, accountID, domain.ActivityLogout)
 	if err != nil {
 		h.logger.WithField("userId", accountID).Errorf("failed to log activity: %v", err)
 	}
@@ -230,20 +252,24 @@ type GetProfileResponse struct {
 // @Failure		500		{object}	map[string]string
 // @Router			api/v1/account/profile [get]
 func (h *AccountHandler) GetProfile(c *gin.Context) {
+	ctx := c.Request.Context()
+	ctx, span := h.tracer.Start(ctx, "GetProfile")
+	defer span.End()
+
 	token := c.GetHeader("Authorization")
 	if token == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "token is required"})
 		return
 	}
 
-	accountID, err := h.accountService.ValidateAuthToken(token)
+	accountID, err := h.accountService.ValidateAuthToken(ctx, token)
 	if err != nil {
 		h.logger.Errorf("failed to validate token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	acc, err := h.accountRepository.GetAccountByID(accountID)
+	acc, err := h.accountRepository.GetAccountByID(ctx, accountID)
 	if err != nil {
 		h.logger.WithField("userId", accountID).Errorf("failed to get account by id: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
@@ -277,13 +303,17 @@ type ForgotPasswordResponse struct {
 // @Failure		500		{object}	map[string]string
 // @Router			api/v1/account/forgot-password [post]
 func (h *AccountHandler) ForgotPassword(c *gin.Context) {
+	ctx := c.Request.Context()
+	ctx, span := h.tracer.Start(ctx, "ForgotPassword")
+	defer span.End()
+
 	var req ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	acc, err := h.accountRepository.GetAccountByEmail(req.Email)
+	acc, err := h.accountRepository.GetAccountByEmail(ctx, req.Email)
 	if err != nil {
 		h.logger.Errorf("failed to get account by email: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
@@ -296,21 +326,21 @@ func (h *AccountHandler) ForgotPassword(c *gin.Context) {
 		return
 	}
 
-	token, err := h.accountService.GeneratePasswordResetToken(acc)
+	token, err := h.accountService.GeneratePasswordResetToken(ctx, acc)
 	if err != nil {
 		h.logger.Errorf("failed to generate token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
 		return
 	}
 
-	err = h.accountService.SendPasswordResetEmail(acc.Email, token)
+	err = h.accountService.SendPasswordResetEmail(ctx, acc.Email, token)
 	if err != nil {
 		h.logger.Errorf("failed to send password reset email: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to send password reset email"})
 		return
 	}
 
-	err = h.accountRepository.LogAccountActivity(acc.ID, domain.ActivityForgotPassword)
+	err = h.accountRepository.LogAccountActivity(ctx, acc.ID, domain.ActivityForgotPassword)
 	if err != nil {
 		h.logger.Errorf("failed to log activity: %v", err)
 	}
@@ -343,6 +373,10 @@ type ResetPasswordResponse struct {
 // @Failure		500		{object}	map[string]string
 // @Router			api/v1/account/reset-password [post]
 func (h *AccountHandler) ResetPassword(c *gin.Context) {
+	ctx := c.Request.Context()
+	ctx, span := h.tracer.Start(ctx, "ResetPassword")
+	defer span.End()
+
 	var req ResetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -352,21 +386,21 @@ func (h *AccountHandler) ResetPassword(c *gin.Context) {
 	token := req.Token
 	password := req.Password
 
-	accountID, err := h.accountService.ValidatePasswordResetToken(token)
+	accountID, err := h.accountService.ValidatePasswordResetToken(ctx, token)
 	if err != nil {
 		h.logger.Errorf("failed to validate token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	acc, err := h.accountRepository.GetAccountByID(accountID)
+	acc, err := h.accountRepository.GetAccountByID(ctx, accountID)
 	if err != nil {
 		h.logger.WithField("userId", accountID).Errorf("failed to get account by id: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	hashedPassword, err := h.accountService.HashPassword(password)
+	hashedPassword, err := h.accountService.HashPassword(ctx, password)
 	if err != nil {
 		h.logger.WithField("userId", accountID).Errorf("failed to hash password: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
@@ -375,14 +409,14 @@ func (h *AccountHandler) ResetPassword(c *gin.Context) {
 
 	acc.Password = hashedPassword
 
-	acc, err = h.accountRepository.UpdateAccount(acc)
+	acc, err = h.accountRepository.UpdateAccount(ctx, acc)
 	if err != nil {
 		h.logger.WithField("userId", accountID).Errorf("failed to update account: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	err = h.accountRepository.LogAccountActivity(acc.ID, domain.ActivityResetPassword)
+	err = h.accountRepository.LogAccountActivity(ctx, acc.ID, domain.ActivityResetPassword)
 	if err != nil {
 		h.logger.WithField("userId", accountID).Errorf("failed to log activity: %v", err)
 	}
@@ -415,6 +449,10 @@ type ChangePasswordResponse struct {
 // @Failure		500		{object}	map[string]string
 // @Router			api/v1/account/change-password [post]
 func (h *AccountHandler) ChangePassword(c *gin.Context) {
+	ctx := c.Request.Context()
+	ctx, span := h.tracer.Start(ctx, "ChangePassword")
+	defer span.End()
+
 	var req ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -427,21 +465,21 @@ func (h *AccountHandler) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	accountID, err := h.accountService.ValidateAuthToken(token)
+	accountID, err := h.accountService.ValidateAuthToken(ctx, token)
 	if err != nil {
 		h.logger.Errorf("failed to validate token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	acc, err := h.accountRepository.GetAccountByID(accountID)
+	acc, err := h.accountRepository.GetAccountByID(ctx, accountID)
 	if err != nil {
 		h.logger.WithField("userId", accountID).Errorf("failed to get account by id: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	ok, err := h.accountService.ComparePassword(req.OldPassword, acc.Password)
+	ok, err := h.accountService.ComparePassword(ctx, req.OldPassword, acc.Password)
 	if err != nil {
 		h.logger.WithField("userId", accountID).Errorf("failed to compare password: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
@@ -454,7 +492,7 @@ func (h *AccountHandler) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	hashedPassword, err := h.accountService.HashPassword(req.NewPassword)
+	hashedPassword, err := h.accountService.HashPassword(ctx, req.NewPassword)
 	if err != nil {
 		h.logger.WithField("userId", accountID).Errorf("failed to hash password: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
@@ -463,14 +501,14 @@ func (h *AccountHandler) ChangePassword(c *gin.Context) {
 
 	acc.Password = hashedPassword
 
-	acc, err = h.accountRepository.UpdateAccount(acc)
+	acc, err = h.accountRepository.UpdateAccount(ctx, acc)
 	if err != nil {
 		h.logger.WithField("userId", accountID).Errorf("failed to update account: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	err = h.accountRepository.LogAccountActivity(acc.ID, domain.ActivityChangePassword)
+	err = h.accountRepository.LogAccountActivity(ctx, acc.ID, domain.ActivityChangePassword)
 	if err != nil {
 		h.logger.WithField("userId", accountID).Errorf("failed to log activity: %v", err)
 	}

@@ -42,3 +42,5 @@ Thumbs.db
 *.db-trace
 *.db-wal
 *.db-shm
+
+container

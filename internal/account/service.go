@@ -1,6 +1,7 @@
 package account
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/rand"
 	"encoding/base64"
@@ -14,6 +15,8 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/spf13/viper"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -25,18 +28,24 @@ var (
 )
 
 type AccountService struct {
+	tracer       trace.Tracer
 	emailService mailer.EmailService
 }
 
 func NewAccountService(emailService mailer.EmailService) domain.AccountService {
+	tracer := otel.Tracer("accountService")
 	return &AccountService{
+		tracer:       tracer,
 		emailService: emailService,
 	}
 }
 
 // hashes password into following format:
 // $argon2id$v=19$m=65536,t=1,p=4$<salt>$<hash>
-func (s *AccountService) HashPassword(password string) (string, error) {
+func (s *AccountService) HashPassword(ctx context.Context, password string) (string, error) {
+	ctx, span := s.tracer.Start(ctx, "HashPassword")
+	defer span.End()
+
 	// Validate input type and length
 	if len(password) == 0 {
 		return "", domain.ErrPasswordEmpty
@@ -70,7 +79,10 @@ func (s *AccountService) HashPassword(password string) (string, error) {
 	return encoded, nil
 }
 
-func (s *AccountService) ComparePassword(password, hash string) (bool, error) {
+func (s *AccountService) ComparePassword(ctx context.Context, password, hash string) (bool, error) {
+	ctx, span := s.tracer.Start(ctx, "ComparePassword")
+	defer span.End()
+
 	// Split the hash into its components
 	// Expected format: $argon2id$v=19$m=65536,t=1,p=4$<salt>$<hash>
 	parts := strings.Split(hash, "$")
@@ -131,7 +143,10 @@ func (s *AccountService) ComparePassword(password, hash string) (bool, error) {
 	return hmac.Equal(hashBytes, computedHash), nil
 }
 
-func (s *AccountService) GenerateAuthToken(account *domain.Account) (string, error) {
+func (s *AccountService) GenerateAuthToken(ctx context.Context, account *domain.Account) (string, error) {
+	ctx, span := s.tracer.Start(ctx, "GenerateAuthToken")
+	defer span.End()
+
 	jwtSecret := viper.GetString("JWT_SECRET")
 	if jwtSecret == "" {
 		return "", ErrJWTSecretNotSet
@@ -147,7 +162,10 @@ func (s *AccountService) GenerateAuthToken(account *domain.Account) (string, err
 	return token.SignedString([]byte(jwtSecret))
 }
 
-func (s *AccountService) ValidateAuthToken(token string) (uint, error) {
+func (s *AccountService) ValidateAuthToken(ctx context.Context, token string) (uint, error) {
+	ctx, span := s.tracer.Start(ctx, "ValidateAuthToken")
+	defer span.End()
+
 	jwtSecret := viper.GetString("JWT_SECRET")
 	if jwtSecret == "" {
 		return 0, ErrJWTSecretNotSet
@@ -175,7 +193,10 @@ func (s *AccountService) ValidateAuthToken(token string) (uint, error) {
 	return uint(accountIDFloat), nil
 }
 
-func (s *AccountService) GeneratePasswordResetToken(account *domain.Account) (string, error) {
+func (s *AccountService) GeneratePasswordResetToken(ctx context.Context, account *domain.Account) (string, error) {
+	ctx, span := s.tracer.Start(ctx, "GeneratePasswordResetToken")
+	defer span.End()
+
 	jwtSecret := viper.GetString("JWT_SECRET")
 	if jwtSecret == "" {
 		return "", ErrJWTSecretNotSet
@@ -191,7 +212,10 @@ func (s *AccountService) GeneratePasswordResetToken(account *domain.Account) (st
 	return token.SignedString([]byte(jwtSecret))
 }
 
-func (s *AccountService) ValidatePasswordResetToken(token string) (uint, error) {
+func (s *AccountService) ValidatePasswordResetToken(ctx context.Context, token string) (uint, error) {
+	ctx, span := s.tracer.Start(ctx, "ValidatePasswordResetToken")
+	defer span.End()
+
 	jwtSecret := viper.GetString("JWT_SECRET")
 	if jwtSecret == "" {
 		return 0, ErrJWTSecretNotSet
@@ -226,7 +250,10 @@ func (s *AccountService) ValidatePasswordResetToken(token string) (uint, error) 
 	return uint(accountID), nil
 }
 
-func (s *AccountService) SendPasswordResetEmail(email string, token string) error {
+func (s *AccountService) SendPasswordResetEmail(ctx context.Context, email string, token string) error {
+	ctx, span := s.tracer.Start(ctx, "SendPasswordResetEmail")
+	defer span.End()
+
 	serverUrl := viper.GetString("SERVER_URL")
 	if serverUrl == "" {
 		return domain.ErrServerURLNotSet

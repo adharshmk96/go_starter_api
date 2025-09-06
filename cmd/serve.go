@@ -30,6 +30,13 @@ var serveCmd = &cobra.Command{
 
 		logger := logrus.New()
 
+		shutdown, err := infra.SetupOtelSDK(context.Background())
+		if err != nil {
+			fmt.Println("error setting up otel sdk", err)
+			return
+		}
+		defer shutdown(context.Background())
+
 		config := infra.Config{
 			Port: port,
 		}
