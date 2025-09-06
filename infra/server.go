@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"gorm.io/gorm"
 )
 
 type Config struct {
@@ -15,6 +16,7 @@ type Config struct {
 }
 
 func NewServer(
+	db *gorm.DB,
 	logger *logrus.Logger,
 	config Config,
 ) *http.Server {
@@ -26,6 +28,8 @@ func NewServer(
 	rg.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "ok"})
 	})
+
+	SetupRoutes(rg, db, logger)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", config.Port),

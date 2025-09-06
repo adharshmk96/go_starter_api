@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 tasks:
   swaggo:
@@ -6,3 +6,15 @@ tasks:
 
   migcr:
     cmd: migrate create -ext sql -dir ./migrations -seq {{.name}}
+
+  test:
+    cmd: go test ./...
+
+  run:
+    cmd: go run main.go serve --port 8080
+
+  fmt:
+    cmd: go fmt && swag fmt
+
+  build:
+    cmd: swag init && go build -o main .

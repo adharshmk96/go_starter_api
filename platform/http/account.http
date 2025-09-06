@@ -1,0 +1,36 @@
+POST http://localhost:8080/api/v1/account/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "pa$$word"
+}
+
+###
+
+POST http://localhost:8080/api/v1/account/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "pa$$word"
+}
+
+###
+
+GET http://localhost:8080/api/v1/account/profile
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTcxNzM2NTksImlhdCI6MTc1NzA4NzI1OSwiaXNzIjoic2VydmljZWh1Yl9hcGkiLCJzdWIiOjF9.wGpD6_7c6sjNtYfwyq3ZRIqCIP02UtW3-CgprCwVf9k
+
+###
+
+POST http://localhost:8080/api/v1/account/logout
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTcxNzM2NTksImlhdCI6MTc1NzA4NzI1OSwiaXNzIjoic2VydmljZWh1Yl9hcGkiLCJzdWIiOjF9.wGpD6_7c6sjNtYfwyq3ZRIqCIP02UtW3-CgprCwVf9k
+
+###
+
+POST http://localhost:8080/api/v1/account/forgot-password
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}

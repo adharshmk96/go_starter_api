@@ -1,11 +1,62 @@
 basePath: /api/v1
+definitions:
+  account.RegisterAccountRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  account.RegisterAccountResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      token:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
   description: This is the API for the ServiceHub platform.
   title: ServiceHub API
   version: "1.0"
-paths: {}
+paths:
+  /account/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new account
+      parameters:
+      - description: Account
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/account.RegisterAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/account.RegisterAccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new account
+      tags:
+      - account
 schemes:
 - http
 swagger: "2.0"
