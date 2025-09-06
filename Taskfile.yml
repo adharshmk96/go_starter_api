@@ -1,20 +1,24 @@
 version: "3"
 
 tasks:
-  swaggo:
-    cmd: swag init
-
   migcr:
     cmd: migrate create -ext sql -dir ./migrations -seq {{.name}}
 
-  test:
-    cmd: go test ./...
+  init:
+    cmds:
+      - swag init
+      - echo .env_sample > .env
 
   run:
-    cmd: go run main.go serve --port 8080
+    cmds:
+      - bash platform/script/run-lgtm.sh
+      - go run main.go serve --port 8080
 
   fmt:
     cmd: go fmt && swag fmt
+
+  test:
+    cmd: go test ./...
 
   build:
     cmd: swag init && go build -o main .
