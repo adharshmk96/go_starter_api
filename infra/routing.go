@@ -26,4 +26,5 @@ func SetupRoutes(
 	rg.GET("/account/profile", accountHandler.GetProfile)
 	rg.POST("/account/forgot-password", accountHandler.ForgotPassword)
 	rg.POST("/account/reset-password", accountHandler.ResetPassword)
+	rg.POST("/account/change-password", accountHandler.ChangePassword)
 }

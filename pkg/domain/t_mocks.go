@@ -101,12 +101,12 @@ func (_c *MockAccountService_ComparePassword_Call) RunAndReturn(run func(passwor
 	return _c
 }
 
-// GenerateToken provides a mock function for the type MockAccountService
-func (_mock *MockAccountService) GenerateToken(account *Account) (string, error) {
+// GenerateAuthToken provides a mock function for the type MockAccountService
+func (_mock *MockAccountService) GenerateAuthToken(account *Account) (string, error) {
 	ret := _mock.Called(account)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GenerateToken")
+		panic("no return value specified for GenerateAuthToken")
 	}
 
 	var r0 string
@@ -127,18 +127,18 @@ func (_mock *MockAccountService) GenerateToken(account *Account) (string, error)
 	return r0, r1
 }
 
-// MockAccountService_GenerateToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GenerateToken'
-type MockAccountService_GenerateToken_Call struct {
+// MockAccountService_GenerateAuthToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GenerateAuthToken'
+type MockAccountService_GenerateAuthToken_Call struct {
 	*mock.Call
 }
 
-// GenerateToken is a helper method to define mock.On call
+// GenerateAuthToken is a helper method to define mock.On call
 //   - account *Account
-func (_e *MockAccountService_Expecter) GenerateToken(account interface{}) *MockAccountService_GenerateToken_Call {
-	return &MockAccountService_GenerateToken_Call{Call: _e.mock.On("GenerateToken", account)}
+func (_e *MockAccountService_Expecter) GenerateAuthToken(account interface{}) *MockAccountService_GenerateAuthToken_Call {
+	return &MockAccountService_GenerateAuthToken_Call{Call: _e.mock.On("GenerateAuthToken", account)}
 }
 
-func (_c *MockAccountService_GenerateToken_Call) Run(run func(account *Account)) *MockAccountService_GenerateToken_Call {
+func (_c *MockAccountService_GenerateAuthToken_Call) Run(run func(account *Account)) *MockAccountService_GenerateAuthToken_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 *Account
 		if args[0] != nil {
@@ -151,12 +151,72 @@ func (_c *MockAccountService_GenerateToken_Call) Run(run func(account *Account))
 	return _c
 }
 
-func (_c *MockAccountService_GenerateToken_Call) Return(s string, err error) *MockAccountService_GenerateToken_Call {
+func (_c *MockAccountService_GenerateAuthToken_Call) Return(s string, err error) *MockAccountService_GenerateAuthToken_Call {
 	_c.Call.Return(s, err)
 	return _c
 }
 
-func (_c *MockAccountService_GenerateToken_Call) RunAndReturn(run func(account *Account) (string, error)) *MockAccountService_GenerateToken_Call {
+func (_c *MockAccountService_GenerateAuthToken_Call) RunAndReturn(run func(account *Account) (string, error)) *MockAccountService_GenerateAuthToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GeneratePasswordResetToken provides a mock function for the type MockAccountService
+func (_mock *MockAccountService) GeneratePasswordResetToken(account *Account) (string, error) {
+	ret := _mock.Called(account)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GeneratePasswordResetToken")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(*Account) (string, error)); ok {
+		return returnFunc(account)
+	}
+	if returnFunc, ok := ret.Get(0).(func(*Account) string); ok {
+		r0 = returnFunc(account)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(*Account) error); ok {
+		r1 = returnFunc(account)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAccountService_GeneratePasswordResetToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GeneratePasswordResetToken'
+type MockAccountService_GeneratePasswordResetToken_Call struct {
+	*mock.Call
+}
+
+// GeneratePasswordResetToken is a helper method to define mock.On call
+//   - account *Account
+func (_e *MockAccountService_Expecter) GeneratePasswordResetToken(account interface{}) *MockAccountService_GeneratePasswordResetToken_Call {
+	return &MockAccountService_GeneratePasswordResetToken_Call{Call: _e.mock.On("GeneratePasswordResetToken", account)}
+}
+
+func (_c *MockAccountService_GeneratePasswordResetToken_Call) Run(run func(account *Account)) *MockAccountService_GeneratePasswordResetToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 *Account
+		if args[0] != nil {
+			arg0 = args[0].(*Account)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAccountService_GeneratePasswordResetToken_Call) Return(s string, err error) *MockAccountService_GeneratePasswordResetToken_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockAccountService_GeneratePasswordResetToken_Call) RunAndReturn(run func(account *Account) (string, error)) *MockAccountService_GeneratePasswordResetToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -278,12 +338,12 @@ func (_c *MockAccountService_SendPasswordResetEmail_Call) RunAndReturn(run func(
 	return _c
 }
 
-// ValidateToken provides a mock function for the type MockAccountService
-func (_mock *MockAccountService) ValidateToken(token string) (uint, error) {
+// ValidateAuthToken provides a mock function for the type MockAccountService
+func (_mock *MockAccountService) ValidateAuthToken(token string) (uint, error) {
 	ret := _mock.Called(token)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ValidateToken")
+		panic("no return value specified for ValidateAuthToken")
 	}
 
 	var r0 uint
@@ -304,18 +364,18 @@ func (_mock *MockAccountService) ValidateToken(token string) (uint, error) {
 	return r0, r1
 }
 
-// MockAccountService_ValidateToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ValidateToken'
-type MockAccountService_ValidateToken_Call struct {
+// MockAccountService_ValidateAuthToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ValidateAuthToken'
+type MockAccountService_ValidateAuthToken_Call struct {
 	*mock.Call
 }
 
-// ValidateToken is a helper method to define mock.On call
+// ValidateAuthToken is a helper method to define mock.On call
 //   - token string
-func (_e *MockAccountService_Expecter) ValidateToken(token interface{}) *MockAccountService_ValidateToken_Call {
-	return &MockAccountService_ValidateToken_Call{Call: _e.mock.On("ValidateToken", token)}
+func (_e *MockAccountService_Expecter) ValidateAuthToken(token interface{}) *MockAccountService_ValidateAuthToken_Call {
+	return &MockAccountService_ValidateAuthToken_Call{Call: _e.mock.On("ValidateAuthToken", token)}
 }
 
-func (_c *MockAccountService_ValidateToken_Call) Run(run func(token string)) *MockAccountService_ValidateToken_Call {
+func (_c *MockAccountService_ValidateAuthToken_Call) Run(run func(token string)) *MockAccountService_ValidateAuthToken_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 string
 		if args[0] != nil {
@@ -328,12 +388,72 @@ func (_c *MockAccountService_ValidateToken_Call) Run(run func(token string)) *Mo
 	return _c
 }
 
-func (_c *MockAccountService_ValidateToken_Call) Return(v uint, err error) *MockAccountService_ValidateToken_Call {
+func (_c *MockAccountService_ValidateAuthToken_Call) Return(v uint, err error) *MockAccountService_ValidateAuthToken_Call {
 	_c.Call.Return(v, err)
 	return _c
 }
 
-func (_c *MockAccountService_ValidateToken_Call) RunAndReturn(run func(token string) (uint, error)) *MockAccountService_ValidateToken_Call {
+func (_c *MockAccountService_ValidateAuthToken_Call) RunAndReturn(run func(token string) (uint, error)) *MockAccountService_ValidateAuthToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ValidatePasswordResetToken provides a mock function for the type MockAccountService
+func (_mock *MockAccountService) ValidatePasswordResetToken(token string) (uint, error) {
+	ret := _mock.Called(token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ValidatePasswordResetToken")
+	}
+
+	var r0 uint
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(string) (uint, error)); ok {
+		return returnFunc(token)
+	}
+	if returnFunc, ok := ret.Get(0).(func(string) uint); ok {
+		r0 = returnFunc(token)
+	} else {
+		r0 = ret.Get(0).(uint)
+	}
+	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
+		r1 = returnFunc(token)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAccountService_ValidatePasswordResetToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ValidatePasswordResetToken'
+type MockAccountService_ValidatePasswordResetToken_Call struct {
+	*mock.Call
+}
+
+// ValidatePasswordResetToken is a helper method to define mock.On call
+//   - token string
+func (_e *MockAccountService_Expecter) ValidatePasswordResetToken(token interface{}) *MockAccountService_ValidatePasswordResetToken_Call {
+	return &MockAccountService_ValidatePasswordResetToken_Call{Call: _e.mock.On("ValidatePasswordResetToken", token)}
+}
+
+func (_c *MockAccountService_ValidatePasswordResetToken_Call) Run(run func(token string)) *MockAccountService_ValidatePasswordResetToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAccountService_ValidatePasswordResetToken_Call) Return(v uint, err error) *MockAccountService_ValidatePasswordResetToken_Call {
+	_c.Call.Return(v, err)
+	return _c
+}
+
+func (_c *MockAccountService_ValidatePasswordResetToken_Call) RunAndReturn(run func(token string) (uint, error)) *MockAccountService_ValidatePasswordResetToken_Call {
 	_c.Call.Return(run)
 	return _c
 }

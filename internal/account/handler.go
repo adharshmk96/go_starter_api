@@ -60,7 +60,7 @@ func (h *AccountHandler) RegisterAccount(c *gin.Context) {
 	// Check if account already exists
 	existingAcc, err := h.accountRepository.GetAccountByEmail(req.Email)
 	if err == nil && existingAcc != nil {
-		h.logger.Errorf("account already exists")
+		h.logger.WithField("userId", existingAcc.ID).Errorf("account already exists")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "account already exists"})
 		return
 	}
@@ -94,14 +94,14 @@ func (h *AccountHandler) RegisterAccount(c *gin.Context) {
 
 	token, err := h.accountService.GenerateAuthToken(acc)
 	if err != nil {
-		h.logger.Errorf("failed to generate token: %v", err)
+		h.logger.WithField("userId", acc.ID).Errorf("failed to generate token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	err = h.accountRepository.LogAccountActivity(acc.ID, domain.ActivityRegister)
 	if err != nil {
-		h.logger.Errorf("failed to log activity: %v", err)
+		h.logger.WithField("userId", acc.ID).Errorf("failed to log activity: %v", err)
 	}
 
 	c.JSON(http.StatusOK, RegisterAccountResponse{
@@ -146,29 +146,34 @@ func (h *AccountHandler) LoginAccount(c *gin.Context) {
 
 	ok, err := h.accountService.ComparePassword(req.Password, acc.Password)
 	if err != nil {
-		h.logger.Errorf("failed to compare password: %v", err)
+		h.logger.WithField("userId", acc.ID).Errorf("failed to compare password: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 	if !ok {
-		h.logger.Errorf("invalid password")
+		h.logger.WithField("userId", acc.ID).Errorf("invalid password")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid password"})
 		return
 	}
 
 	token, err := h.accountService.GenerateAuthToken(acc)
 	if err != nil {
-		h.logger.Errorf("failed to generate token: %v", err)
+		h.logger.WithField("userId", acc.ID).Errorf("failed to generate token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
 		return
 	}
 
 	err = h.accountRepository.LogAccountActivity(acc.ID, domain.ActivityLogin)
 	if err != nil {
-		h.logger.Errorf("failed to log activity: %v", err)
+		h.logger.WithField("userId", acc.ID).Errorf("failed to log activity: %v", err)
 	}
 
-	c.JSON(http.StatusOK, LoginAccountResponse{Token: token})
+	c.JSON(
+		http.StatusOK,
+		LoginAccountResponse{
+			Token: token,
+		},
+	)
 }
 
 // @Summary		Logout a user
@@ -196,10 +201,15 @@ func (h *AccountHandler) LogoutAccount(c *gin.Context) {
 
 	err = h.accountRepository.LogAccountActivity(accountID, domain.ActivityLogout)
 	if err != nil {
-		h.logger.Errorf("failed to log activity: %v", err)
+		h.logger.WithField("userId", accountID).Errorf("failed to log activity: %v", err)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "logout successful"})
+	c.JSON(
+		http.StatusOK,
+		gin.H{
+			"message": "logout successful",
+		},
+	)
 }
 
 type GetProfileResponse struct {
@@ -235,12 +245,17 @@ func (h *AccountHandler) GetProfile(c *gin.Context) {
 
 	acc, err := h.accountRepository.GetAccountByID(accountID)
 	if err != nil {
-		h.logger.Errorf("failed to get account by id: %v", err)
+		h.logger.WithField("userId", accountID).Errorf("failed to get account by id: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	c.JSON(http.StatusOK, GetProfileResponse{ID: acc.ID, Email: acc.Email})
+	c.JSON(http.StatusOK, GetProfileResponse{
+		ID:        acc.ID,
+		Email:     acc.Email,
+		CreatedAt: acc.CreatedAt,
+		UpdatedAt: acc.UpdatedAt,
+	})
 }
 
 type ForgotPasswordRequest struct {
@@ -300,7 +315,12 @@ func (h *AccountHandler) ForgotPassword(c *gin.Context) {
 		h.logger.Errorf("failed to log activity: %v", err)
 	}
 
-	c.JSON(http.StatusOK, ForgotPasswordResponse{Message: "password reset email sent"})
+	c.JSON(
+		http.StatusOK,
+		ForgotPasswordResponse{
+			Message: "password reset email sent",
+		},
+	)
 }
 
 type ResetPasswordRequest struct {
@@ -341,14 +361,14 @@ func (h *AccountHandler) ResetPassword(c *gin.Context) {
 
 	acc, err := h.accountRepository.GetAccountByID(accountID)
 	if err != nil {
-		h.logger.Errorf("failed to get account by id: %v", err)
+		h.logger.WithField("userId", accountID).Errorf("failed to get account by id: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
 	hashedPassword, err := h.accountService.HashPassword(password)
 	if err != nil {
-		h.logger.Errorf("failed to hash password: %v", err)
+		h.logger.WithField("userId", accountID).Errorf("failed to hash password: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
@@ -357,15 +377,108 @@ func (h *AccountHandler) ResetPassword(c *gin.Context) {
 
 	acc, err = h.accountRepository.UpdateAccount(acc)
 	if err != nil {
-		h.logger.Errorf("failed to update account: %v", err)
+		h.logger.WithField("userId", accountID).Errorf("failed to update account: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
 	err = h.accountRepository.LogAccountActivity(acc.ID, domain.ActivityResetPassword)
 	if err != nil {
-		h.logger.Errorf("failed to log activity: %v", err)
+		h.logger.WithField("userId", accountID).Errorf("failed to log activity: %v", err)
 	}
 
-	c.JSON(http.StatusOK, ResetPasswordResponse{Message: "password reset successful"})
+	c.JSON(
+		http.StatusOK,
+		ResetPasswordResponse{
+			Message: "password reset successful",
+		},
+	)
+}
+
+type ChangePasswordRequest struct {
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+}
+
+type ChangePasswordResponse struct {
+	Message string `json:"message"`
+}
+
+// @Summary		Change Password
+// @Description	Change Password
+// @Tags			account
+// @Accept			json
+// @Produce		json
+// @Param			account	body		ChangePasswordRequest	true	"Account"
+// @Success		200		{object}	ChangePasswordResponse
+// @Failure		400		{object}	map[string]string
+// @Failure		500		{object}	map[string]string
+// @Router			api/v1/account/change-password [post]
+func (h *AccountHandler) ChangePassword(c *gin.Context) {
+	var req ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	token := c.GetHeader("Authorization")
+	if token == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "token is required"})
+		return
+	}
+
+	accountID, err := h.accountService.ValidateAuthToken(token)
+	if err != nil {
+		h.logger.Errorf("failed to validate token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	acc, err := h.accountRepository.GetAccountByID(accountID)
+	if err != nil {
+		h.logger.WithField("userId", accountID).Errorf("failed to get account by id: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	ok, err := h.accountService.ComparePassword(req.OldPassword, acc.Password)
+	if err != nil {
+		h.logger.WithField("userId", accountID).Errorf("failed to compare password: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	if !ok {
+		h.logger.WithField("userId", accountID).Errorf("invalid old password")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid old password"})
+		return
+	}
+
+	hashedPassword, err := h.accountService.HashPassword(req.NewPassword)
+	if err != nil {
+		h.logger.WithField("userId", accountID).Errorf("failed to hash password: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	acc.Password = hashedPassword
+
+	acc, err = h.accountRepository.UpdateAccount(acc)
+	if err != nil {
+		h.logger.WithField("userId", accountID).Errorf("failed to update account: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	err = h.accountRepository.LogAccountActivity(acc.ID, domain.ActivityChangePassword)
+	if err != nil {
+		h.logger.WithField("userId", accountID).Errorf("failed to log activity: %v", err)
+	}
+
+	c.JSON(
+		http.StatusOK,
+		ChangePasswordResponse{
+			Message: "password changed successfully",
+		},
+	)
 }

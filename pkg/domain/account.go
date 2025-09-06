@@ -16,6 +16,17 @@ type Account struct {
 	Password  string         `json:"password"`
 }
 
+var (
+	ActivityLogin          = "login"
+	ActivityLogout         = "logout"
+	ActivityRegister       = "register"
+	ActivityUpdate         = "update"
+	ActivityDelete         = "delete"
+	ActivityResetPassword  = "reset_password"
+	ActivityForgotPassword = "forgot_password"
+	ActivityChangePassword = "change_password"
+)
+
 type AccountActivity struct {
 	ID        uint           `json:"id" gorm:"primarykey"`
 	CreatedAt time.Time      `json:"created_at" gorm:"autoCreateTime"`
@@ -41,17 +52,6 @@ var (
 	ErrPasswordEmpty     = errors.New("password cannot be empty")
 	ErrInvalidHashFormat = errors.New("invalid hash format")
 	ErrServerURLNotSet   = errors.New("server url is not set")
-)
-
-var (
-	ActivityLogin          = "login"
-	ActivityLogout         = "logout"
-	ActivityRegister       = "register"
-	ActivityUpdate         = "update"
-	ActivityDelete         = "delete"
-	ActivityResetPassword  = "reset_password"
-	ActivityForgotPassword = "forgot_password"
-	ActivityChangePassword = "change_password"
 )
 
 type AccountRepository interface {
