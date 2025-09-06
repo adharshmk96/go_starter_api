@@ -3,11 +3,13 @@ package infra
 import (
 	"context"
 	"errors"
+	"fmt"
 
+	"github.com/spf13/viper"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/propagation"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
@@ -15,6 +17,8 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func SetupOtelSDK(ctx context.Context) (func(context.Context) error, error) {
@@ -40,8 +44,14 @@ func SetupOtelSDK(ctx context.Context) (func(context.Context) error, error) {
 	// propagators are used to propagate the trace context and baggage across the different services.
 	initPropagators()
 
+	// initialize the gRPC connection
+	conn, err := initConn()
+	if err != nil {
+		return nil, err
+	}
+
 	// tracer provider is used to create and manage the tracers.
-	tp, err := newTracerProvider(ctx)
+	tp, err := newTracerProvider(ctx, conn)
 	if err != nil {
 		handleErr(err)
 	}
@@ -49,7 +59,7 @@ func SetupOtelSDK(ctx context.Context) (func(context.Context) error, error) {
 	shutdownFuncs = append(shutdownFuncs, tp.Shutdown)
 
 	// metric provider is used to create and manage the metrics.
-	mp, err := newMetricProvider(ctx)
+	mp, err := newMetricProvider(ctx, conn)
 	if err != nil {
 		handleErr(err)
 	}
@@ -57,7 +67,7 @@ func SetupOtelSDK(ctx context.Context) (func(context.Context) error, error) {
 	shutdownFuncs = append(shutdownFuncs, mp.Shutdown)
 
 	// logger provider is used to create and manage the loggers.
-	lp, err := newLoggerProvider(ctx)
+	lp, err := newLoggerProvider(ctx, conn)
 	if err != nil {
 		handleErr(err)
 	}
@@ -75,10 +85,34 @@ func initPropagators() {
 	otel.SetTextMapPropagator(prop)
 }
 
-func newTracerProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
-	traceExporter, err := otlptracehttp.New(
+// Initialize a gRPC connection to be used by both the tracer and meter
+// providers.
+func initConn() (*grpc.ClientConn, error) {
+	endpoint := viper.GetString("OTEL_GRPC_ENDPOINT")
+	if endpoint == "" {
+		endpoint = "127.0.0.1:4317"
+	}
+
+	fmt.Println("connecting to endpoint: ", endpoint)
+
+	// It connects the OpenTelemetry Collector through local gRPC connection.
+	// You may replace `127.0.0.1:4317` with your endpoint.
+	conn, err := grpc.NewClient(endpoint,
+		// Note the use of insecure transport here. TLS is recommended in production.
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create gRPC connection to collector: %w", err)
+	}
+
+	return conn, err
+}
+
+func newTracerProvider(ctx context.Context, conn *grpc.ClientConn) (*sdktrace.TracerProvider, error) {
+	traceExporter, err := otlptracegrpc.New(
 		ctx,
-		otlptracehttp.WithInsecure(), // Use HTTP instead of HTTPS
+		otlptracegrpc.WithGRPCConn(conn),
+		otlptracegrpc.WithInsecure(),
 	)
 	if err != nil {
 		return nil, err
@@ -98,9 +132,10 @@ func newTracerProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
 	return tp, nil
 }
 
-func newMetricProvider(ctx context.Context) (*sdkmetric.MeterProvider, error) {
-	metricExporter, err := otlpmetrichttp.New(ctx,
-		otlpmetrichttp.WithInsecure(), // Use HTTP instead of HTTPS
+func newMetricProvider(ctx context.Context, conn *grpc.ClientConn) (*sdkmetric.MeterProvider, error) {
+	metricExporter, err := otlpmetricgrpc.New(ctx,
+		otlpmetricgrpc.WithGRPCConn(conn),
+		otlpmetricgrpc.WithInsecure(),
 	)
 	if err != nil {
 		return nil, err
@@ -120,8 +155,12 @@ func newMetricProvider(ctx context.Context) (*sdkmetric.MeterProvider, error) {
 	return mp, nil
 }
 
-func newLoggerProvider(ctx context.Context) (*sdklog.LoggerProvider, error) {
-	logExporter, err := otlploghttp.New(ctx, otlploghttp.WithInsecure())
+func newLoggerProvider(ctx context.Context, conn *grpc.ClientConn) (*sdklog.LoggerProvider, error) {
+	logExporter, err := otlploggrpc.New(
+		ctx,
+		otlploggrpc.WithGRPCConn(conn),
+		otlploggrpc.WithInsecure(),
+	)
 	if err != nil {
 		return nil, err
 	}

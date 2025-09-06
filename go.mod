@@ -6,13 +6,14 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/otel v1.38.0
-	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.14.0
-	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.38.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.38.0
+	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.14.0
+	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.38.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.38.0
 	go.opentelemetry.io/otel/log v0.14.0
 	go.opentelemetry.io/otel/metric v1.38.0
 	go.opentelemetry.io/otel/sdk/log v0.14.0
 	go.opentelemetry.io/otel/trace v1.38.0
+	google.golang.org/grpc v1.75.0
 )
 
 require (
@@ -32,7 +33,6 @@ require (
 	golang.org/x/sync v0.16.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250825161204-c5933d9347a5 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250825161204-c5933d9347a5 // indirect
-	google.golang.org/grpc v1.75.0 // indirect
 )
 
 require (
@@ -81,6 +81,7 @@ require (
 	github.com/swaggo/swag v1.16.6
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
+	go.opentelemetry.io/contrib/bridges/otelslog v0.13.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.38.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.38.0
 	go.opentelemetry.io/otel/sdk/metric v1.38.0

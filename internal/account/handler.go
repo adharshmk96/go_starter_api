@@ -23,13 +23,17 @@ type AccountHandler struct {
 	accountRepository domain.AccountRepository
 }
 
+const (
+	name = "accountHandler"
+)
+
 func NewAccountHandler(
 	logger *logrus.Logger,
 	accountService domain.AccountService,
 	accountRepository domain.AccountRepository,
 ) *AccountHandler {
-	tracer := otel.Tracer("accountHandler")
-	meter := otel.Meter("accountHandler")
+	tracer := otel.Tracer(name)
+	meter := otel.Meter(name)
 	return &AccountHandler{
 		logger:            logger,
 		tracer:            tracer,

@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -24,7 +23,7 @@ var serveCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		port, err := cmd.Flags().GetInt("port")
 		if err != nil {
-			fmt.Println("error getting port", err)
+			log.Fatalf("error getting port: %v", err)
 			return
 		}
 
@@ -32,7 +31,7 @@ var serveCmd = &cobra.Command{
 
 		shutdown, err := infra.SetupOtelSDK(context.Background())
 		if err != nil {
-			fmt.Println("error setting up otel sdk", err)
+			log.Printf("error setting up otel sdk: %v", err)
 			return
 		}
 		defer shutdown(context.Background())
