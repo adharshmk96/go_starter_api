@@ -2,8 +2,8 @@ package account
 
 import (
 	"errors"
-	"net/http"
 	"go_starter_api/pkg/domain"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -63,7 +63,7 @@ type RegisterAccountResponse struct {
 // @Success		200		{object}	RegisterAccountResponse
 // @Failure		400		{object}	map[string]string
 // @Failure		500		{object}	map[string]string
-// @Router			api/v1/account/register [post]
+// @Router			/api/v1/account/register [post]
 func (h *AccountHandler) RegisterAccount(c *gin.Context) {
 	ctx := c.Request.Context()
 	ctx, span := h.tracer.Start(ctx, "RegisterAccount")
@@ -147,7 +147,7 @@ type LoginAccountResponse struct {
 // @Success		200		{object}	LoginAccountResponse
 // @Failure		400		{object}	map[string]string
 // @Failure		500		{object}	map[string]string
-// @Router			api/v1/account/login [post]
+// @Router			/api/v1/account/login [post]
 func (h *AccountHandler) LoginAccount(c *gin.Context) {
 	ctx := c.Request.Context()
 	ctx, span := h.tracer.Start(ctx, "LoginAccount")
@@ -210,7 +210,7 @@ func (h *AccountHandler) LoginAccount(c *gin.Context) {
 // @Success		200		{object}	map[string]string
 // @Failure		400		{object}	map[string]string
 // @Failure		500		{object}	map[string]string
-// @Router			api/v1/account/logout [post]
+// @Router			/api/v1/account/logout [post]
 func (h *AccountHandler) LogoutAccount(c *gin.Context) {
 	ctx := c.Request.Context()
 	ctx, span := h.tracer.Start(ctx, "LogoutAccount")
@@ -237,11 +237,10 @@ func (h *AccountHandler) LogoutAccount(c *gin.Context) {
 }
 
 type GetProfileResponse struct {
-	ID         uint                     `json:"id"`
-	Email      string                   `json:"email"`
-	CreatedAt  time.Time                `json:"created_at"`
-	UpdatedAt  time.Time                `json:"updated_at"`
-	Activities []domain.AccountActivity `json:"activities"`
+	ID        uint      `json:"id"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // @Summary		Get Profile
@@ -249,10 +248,10 @@ type GetProfileResponse struct {
 // @Tags			account
 // @Accept			json
 // @Produce		json
-// @Success		200		{object}	ProfileResponse
+// @Success		200		{object}	GetProfileResponse
 // @Failure		400		{object}	map[string]string
 // @Failure		500		{object}	map[string]string
-// @Router			api/v1/account/profile [get]
+// @Router			/api/v1/account/profile [get]
 func (h *AccountHandler) GetProfile(c *gin.Context) {
 	ctx := c.Request.Context()
 	ctx, span := h.tracer.Start(ctx, "GetProfile")
@@ -297,7 +296,7 @@ type ForgotPasswordResponse struct {
 // @Success		200		{object}	ForgotPasswordResponse
 // @Failure		400		{object}	map[string]string
 // @Failure		500		{object}	map[string]string
-// @Router			api/v1/account/forgot-password [post]
+// @Router			/api/v1/account/forgot-password [post]
 func (h *AccountHandler) ForgotPassword(c *gin.Context) {
 	ctx := c.Request.Context()
 	ctx, span := h.tracer.Start(ctx, "ForgotPassword")
@@ -367,7 +366,7 @@ type ResetPasswordResponse struct {
 // @Success		200		{object}	ResetPasswordResponse
 // @Failure		400		{object}	map[string]string
 // @Failure		500		{object}	map[string]string
-// @Router			api/v1/account/reset-password [post]
+// @Router			/api/v1/account/reset-password [post]
 func (h *AccountHandler) ResetPassword(c *gin.Context) {
 	ctx := c.Request.Context()
 	ctx, span := h.tracer.Start(ctx, "ResetPassword")
@@ -443,7 +442,7 @@ type ChangePasswordResponse struct {
 // @Success		200		{object}	ChangePasswordResponse
 // @Failure		400		{object}	map[string]string
 // @Failure		500		{object}	map[string]string
-// @Router			api/v1/account/change-password [post]
+// @Router			/api/v1/account/change-password [post]
 func (h *AccountHandler) ChangePassword(c *gin.Context) {
 	ctx := c.Request.Context()
 	ctx, span := h.tracer.Start(ctx, "ChangePassword")
