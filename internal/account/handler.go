@@ -3,6 +3,7 @@ package account
 import (
 	"errors"
 	"go_starter_api/pkg/domain"
+	"go_starter_api/pkg/utils"
 	"net/http"
 	"time"
 
@@ -216,14 +217,14 @@ func (h *AccountHandler) LogoutAccount(c *gin.Context) {
 	ctx, span := h.tracer.Start(ctx, "LogoutAccount")
 	defer span.End()
 
-	accountID, ok := c.Get("accountID")
-	if !ok {
+	accountID := c.GetUint(utils.AccountIdContextKey)
+	if accountID == 0 {
 		h.logger.Errorf("accountID not found")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	err := h.accountRepository.LogAccountActivity(ctx, accountID.(uint), domain.ActivityLogout)
+	err := h.accountRepository.LogAccountActivity(ctx, accountID, domain.ActivityLogout)
 	if err != nil {
 		h.logger.WithField("userId", accountID).Errorf("failed to log activity: %v", err)
 	}
@@ -257,14 +258,14 @@ func (h *AccountHandler) GetProfile(c *gin.Context) {
 	ctx, span := h.tracer.Start(ctx, "GetProfile")
 	defer span.End()
 
-	accountID, ok := c.Get("accountID")
-	if !ok {
+	accountID := c.GetUint(utils.AccountIdContextKey)
+	if accountID == 0 {
 		h.logger.Errorf("accountID not found")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	acc, err := h.accountRepository.GetAccountByID(ctx, accountID.(uint))
+	acc, err := h.accountRepository.GetAccountByID(ctx, accountID)
 	if err != nil {
 		h.logger.WithField("userId", accountID).Errorf("failed to get account by id: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
@@ -454,21 +455,21 @@ func (h *AccountHandler) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	accountID, ok := c.Get("accountID")
-	if !ok {
+	accountID := c.GetUint(utils.AccountIdContextKey)
+	if accountID == 0 {
 		h.logger.Errorf("accountID not found")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	acc, err := h.accountRepository.GetAccountByID(ctx, accountID.(uint))
+	acc, err := h.accountRepository.GetAccountByID(ctx, accountID)
 	if err != nil {
 		h.logger.WithField("userId", accountID).Errorf("failed to get account by id: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	ok, err = h.accountService.ComparePassword(ctx, req.OldPassword, acc.Password)
+	ok, err := h.accountService.ComparePassword(ctx, req.OldPassword, acc.Password)
 	if err != nil {
 		h.logger.WithField("userId", accountID).Errorf("failed to compare password: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
