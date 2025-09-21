@@ -19,7 +19,7 @@ import (
 // serveCmd represents the serve command
 var serveCmd = &cobra.Command{
 	Use:   "serve",
-	Short: "serve the gostarter api",
+	Short: "serve the go_starter api",
 	Run: func(cmd *cobra.Command, args []string) {
 		port, err := cmd.Flags().GetInt("port")
 		if err != nil {

@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: gostarter
+      POSTGRES_DB: go_starter
     volumes:
       - ./_container/db_data:/var/lib/postgresql/data
   

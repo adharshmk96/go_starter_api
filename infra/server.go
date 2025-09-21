@@ -33,7 +33,7 @@ func NewServer(
 	gin.SetMode(ginServerMode())
 
 	router := gin.Default()
-	router.Use(otelgin.Middleware("gostarter-api"))
+	router.Use(otelgin.Middleware("go_starter-api"))
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 

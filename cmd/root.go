@@ -16,7 +16,7 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "go_starter_api",
-	Short: "api server for gostarter",
+	Short: "api server for go_starter",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

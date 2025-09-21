@@ -1,4 +1,4 @@
-# GoStarter API
+# go_starter API
 
 ## Prerequisites
 

@@ -11,9 +11,9 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// @title			GoStarter API
+// @title			go_starter API
 // @version		1.0
-// @description	This is the API for the GoStarter platform.
+// @description	This is the API for the go_starter platform.
 // @host			localhost:8080
 // @BasePath		/
 // @schemes		http
